@@ -10,11 +10,22 @@ import {
   UpdateSettingsData
 } from '../types';
 
+// API configuration for separate backend service
+const getApiBaseURL = () => {
+  // Production: use environment variable or default backend URL
+  if (import.meta.env.PROD) {
+    return import.meta.env.VITE_API_URL || 'https://teblo-backend.railway.app/api';
+  }
+  // Development: use local backend
+  return 'http://localhost:3001/api';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.PROD ? import.meta.env.VITE_API_URL || '/api' : '/api',
+  baseURL: getApiBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Clients API

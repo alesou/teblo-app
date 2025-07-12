@@ -12,11 +12,11 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
 
-// CORS configuration for production
+// CORS configuration for separate services
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL, 'https://*.railway.app'].filter((url): url is string => Boolean(url))
-    : ['http://localhost:3000'],
+    ? [process.env.FRONTEND_URL || 'https://teblo-frontend.railway.app', 'https://*.railway.app']
+    : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -27,17 +27,14 @@ app.use(express.json());
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Serve frontend static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../frontend/dist')));
-  
-  // Handle React Router - send all non-API requests to index.html
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api/')) {
-      res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
-    }
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Teblo API is running!', 
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
   });
-}
+});
 
 app.use("/api/clients", clientsRouter);
 app.use("/api/settings", settingsRouter);

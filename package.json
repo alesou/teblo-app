@@ -1,24 +1,14 @@
 {
-  "name": "teblo",
+  "name": "teblo-monorepo",
   "version": "1.0.0",
-  "description": "App de facturación profesional",
-  "main": "backend/dist/index.js",
+  "description": "App de facturación profesional - Monorepo",
+  "private": true,
   "scripts": {
-    "build": "npm run install:deps && npm run build:frontend && npm run build:backend",
-    "install:deps": "cd frontend && npm install && cd ../backend && npm install",
-    "build:frontend": "cd frontend && npm run build",
-    "build:backend": "cd backend && npx prisma generate && npm run build",
-    "start": "cd backend && npm start",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev"
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "keywords": ["facturacion", "invoice", "react", "nodejs"],
-  "author": "Tu nombre",
-  "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.0"
   }

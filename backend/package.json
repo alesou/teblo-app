@@ -1,5 +1,5 @@
 {
-  "name": "facturacion-backend",
+  "name": "teblo-backend",
   "version": "1.0.0",
   "description": "Backend para aplicación de facturación",
   "main": "dist/index.js",
@@ -34,7 +34,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
-  "puppeteer": {
-    "skipChromiumDownload": false
+  "engines": {
+    "node": "18.x"
   }
 }
