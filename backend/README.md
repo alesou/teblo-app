@@ -43,4 +43,4 @@ PORT=3000
 
 1. **Agregar servicio PostgreSQL** en Railway
 2. **Configurar variables de entorno** con los valores apropiados
-3. **El build automáticamente ejecutará las migraciones** de base de datos 
+3. **El build automáticamente ejecutará las migraciones** de base de datos # Last updated: Sat Jul 12 16:43:53 CEST 2025
