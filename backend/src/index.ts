@@ -151,6 +151,12 @@ async function initializeSettings() {
 // Start server
 async function startServer() {
   try {
+    console.log("Starting server...");
+    console.log("Environment:", process.env.NODE_ENV || 'development');
+    console.log("Database URL exists:", !!process.env.DATABASE_URL);
+    console.log("Database URL preview:", process.env.DATABASE_URL?.substring(0, 20) + "...");
+    
+    console.log("Attempting database connection...");
     await prisma.$connect();
     console.log("Database connected successfully");
     
@@ -163,6 +169,7 @@ async function startServer() {
     });
   } catch (error) {
     console.error("Error starting server:", error);
+    console.error("Full error details:", JSON.stringify(error, null, 2));
     process.exit(1);
   }
 }
