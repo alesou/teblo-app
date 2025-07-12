@@ -12,7 +12,7 @@ export const railwayConfig = {
       '--disable-web-security',
       '--disable-features=VizDisplayCompositor'
     ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-unstable' || undefined
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome' || undefined
   },
   
   // Database configuration
