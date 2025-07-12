@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { clientsApi, invoicesApi } from "../services/api";
 
 interface Client {
   id: string;
@@ -31,11 +31,12 @@ const Clients: React.FC = () => {
   const fetchClients = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/clients");
-      setClients(res.data);
+      const data = await clientsApi.getAll();
+      setClients(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err: any) {
       setError("Error al cargar los clientes");
+      setClients([]);
     } finally {
       setLoading(false);
     }
@@ -71,9 +72,9 @@ const Clients: React.FC = () => {
     setSaving(true);
     try {
       if (editId) {
-        await axios.put(`/api/clients/${editId}`, form);
+        await clientsApi.update(editId, form);
       } else {
-        await axios.post("/api/clients", form);
+        await clientsApi.create(form);
       }
       setShowModal(false);
       setForm(initialForm);
@@ -90,7 +91,7 @@ const Clients: React.FC = () => {
     setDeleteId(id);
     setDeleteError(null);
     try {
-      await axios.delete(`/api/clients/${id}`);
+      await clientsApi.delete(id);
       fetchClients();
     } catch (err: any) {
       setDeleteError("No se puede eliminar el cliente (puede tener facturas asociadas)");
@@ -102,9 +103,10 @@ const Clients: React.FC = () => {
   const handleShowInvoices = async (client: Client) => {
     setSelectedClient(client);
     try {
-      const res = await axios.get(`/api/invoices?clientId=${client.id}`);
-      setClientInvoices(res.data);
-      setClientTotal(res.data.reduce((sum: number, inv: any) => sum + inv.total, 0));
+      const invoices = await invoicesApi.getAll();
+      const clientInvoicesData = invoices.filter(inv => inv.clientId === client.id);
+      setClientInvoices(clientInvoicesData);
+      setClientTotal(clientInvoicesData.reduce((sum: number, inv: any) => sum + inv.total, 0));
       setShowInvoicesModal(true);
     } catch (err) {
       alert('Error al cargar facturas del cliente');
