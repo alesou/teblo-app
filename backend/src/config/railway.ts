@@ -1,20 +1,14 @@
 // Railway deployment configuration
 export const railwayConfig = {
-  // Puppeteer configuration for Railway
+  // Puppeteer configuration for Railway (using bundled Chromium)
   puppeteer: {
     headless: true,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--disable-extensions',
-      '--disable-web-security',
-      '--disable-features=VizDisplayCompositor',
-      '--disable-features=site-per-process',
-      '--disable-software-rasterizer'
-    ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome'
+      '--disable-gpu'
+    ]
   },
   
   // Database configuration
