@@ -31,7 +31,6 @@ interface Settings {
   companyName: string;
   companyNif?: string;
   companyAddress?: string;
-  logoUrl?: string;
 }
 
 interface Props {

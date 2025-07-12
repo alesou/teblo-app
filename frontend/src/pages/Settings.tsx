@@ -5,7 +5,6 @@ interface Settings {
   companyName: string;
   companyNif?: string;
   companyAddress?: string;
-  logoUrl?: string;
   invoicePrefix: string;
   nextNumber: number;
   companyPhone?: string;
@@ -16,7 +15,6 @@ const defaultSettings: Settings = {
   companyName: "",
   companyNif: "",
   companyAddress: "",
-  logoUrl: "",
   invoicePrefix: "FAC",
   nextNumber: 1,
   companyPhone: "",
