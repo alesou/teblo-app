@@ -10,20 +10,9 @@ interface PDFGeneratorProps {
   hidden?: boolean;
 }
 
-const PDFGenerator = forwardRef<{ generatePDF: () => void, logoOk: boolean | undefined }, PDFGeneratorProps>(({ invoice, settings, onGenerate, hidden }, ref) => {
+const PDFGenerator = forwardRef<{ generatePDF: () => void }, PDFGeneratorProps>(({ invoice, settings, onGenerate, hidden }, ref) => {
   const invoiceRef = useRef<HTMLDivElement>(null);
-  const [logoOk, setLogoOk] = useState<boolean | undefined>(undefined);
 
-  useEffect(() => {
-    if (settings.logoUrl) {
-      fetch(settings.logoUrl, { method: 'HEAD' })
-        .then(res => setLogoOk(res.ok))
-        .catch(() => setLogoOk(false));
-    } else {
-      setLogoOk(false);
-    }
-  }, [settings.logoUrl]);
-  
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
   
@@ -78,8 +67,7 @@ const PDFGenerator = forwardRef<{ generatePDF: () => void, logoOk: boolean | und
 
   // Exponer logoOk al padre si lo necesita
   useImperativeHandle(ref, () => ({
-    generatePDF,
-    logoOk
+    generatePDF
   }));
 
   if (hidden) {

@@ -42,7 +42,7 @@ const Invoices: React.FC = () => {
   // Estado para controlar la exportación múltiple
   const [exportMultiple, setExportMultiple] = useState(false);
   const [invoicesToExport, setInvoicesToExport] = useState<InvoiceWithExtras[]>([]);
-  const pdfRef = useRef<{ generatePDF: () => void, logoOk: boolean | undefined }>(null);
+  const pdfRef = useRef<{ generatePDF: () => void }>(null);
 
   const fetchInvoices = async () => {
     try {
@@ -431,9 +431,8 @@ const Invoices: React.FC = () => {
                 <button
                   onClick={() => pdfRef.current?.generatePDF()}
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 z-10"
-                  disabled={!pdfRef.current || pdfRef.current.logoOk === undefined}
                 >
-                  {(!pdfRef.current || pdfRef.current.logoOk === undefined) ? 'Cargando...' : 'Generar PDF'}
+                  Generar PDF
                 </button>
               </div>
               <div id="invoice-preview-modal" className="pt-4 pb-4 px-2">
