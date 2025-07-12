@@ -4,15 +4,12 @@
   "description": "App de facturación profesional",
   "scripts": {
     "build": "npm run build:backend && npm run build:frontend",
-    "build:optimized": "npm run install:all && npm run build:backend && npm run build:frontend",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
     "start": "cd backend && npm start",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "install:all": "npm install && cd backend && npm install --production=false && cd ../frontend && npm install",
-    "postinstall": "cd backend && npx prisma generate"
+    "dev:frontend": "cd frontend && npm run dev"
   },
   "keywords": ["facturacion", "invoice", "react", "nodejs"],
   "author": "Tu nombre",
