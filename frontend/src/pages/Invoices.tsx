@@ -5,6 +5,7 @@ import { settingsApi, invoicesApi, clientsApi } from '../services/api';
 import PDFGenerator from '../components/PDFGenerator';
 import MultiPDFGenerator from '../components/MultiPDFGenerator';
 import type { Settings, Invoice } from '../types';
+import { useRef } from 'react';
 
 interface InvoiceWithExtras extends Invoice {
   amountPaid?: number; // Added for editing
@@ -41,6 +42,7 @@ const Invoices: React.FC = () => {
   // Estado para controlar la exportación múltiple
   const [exportMultiple, setExportMultiple] = useState(false);
   const [invoicesToExport, setInvoicesToExport] = useState<InvoiceWithExtras[]>([]);
+  const pdfRef = useRef<() => void | null>(null);
 
   const fetchInvoices = async () => {
     try {
@@ -426,15 +428,22 @@ const Invoices: React.FC = () => {
                 >
                   Cerrar
                 </button>
-                {settings && (
-                  <PDFGenerator 
-                    invoice={selectedInvoice} 
-                    settings={settings}
-                  />
-                )}
+                <button
+                  onClick={() => pdfRef.current && pdfRef.current()}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 z-10"
+                >
+                  Generar PDF
+                </button>
               </div>
               <div id="invoice-preview-modal" className="pt-4 pb-4 px-2">
                 <InvoicePreview invoice={{...selectedInvoice, client: selectedInvoice.client, items: selectedInvoice.items as any}} settings={settings} />
+                {/* PDFGenerator invisible para exportar al pulsar el botón */}
+                <PDFGenerator
+                  ref={pdfRef}
+                  invoice={selectedInvoice}
+                  settings={settings}
+                  hidden
+                />
                 {payments.length > 0 && (
                   <div className="mt-6">
                     <h3 className="font-semibold mb-2 text-gray-700">Historial de pagos</h3>
