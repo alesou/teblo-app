@@ -1,12 +1,10 @@
 import { useEffect, useRef } from "react";
 import { auth } from "../firebase";
 import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
+import { config } from "../config";
 
 // @ts-ignore
 declare global { interface Window { google: any; } }
-
-// Client ID correcto proporcionado por el usuario
-const CLIENT_ID = "440923986344-58v7n3q09l3kk9st5jub5d55ar3h0d7m.apps.googleusercontent.com";
 
 export default function Welcome() {
   const buttonDiv = useRef<HTMLDivElement>(null);
@@ -20,7 +18,7 @@ export default function Welcome() {
       document.body.appendChild(script);
       script.onload = () => {
         window.google?.accounts.id.initialize({
-          client_id: CLIENT_ID,
+          client_id: config.google.clientId,
           callback: async (response: any) => {
             const credential = GoogleAuthProvider.credential(response.credential);
             await signInWithCredential(auth, credential);
@@ -62,7 +60,7 @@ export default function Welcome() {
         <div ref={buttonDiv} className="mb-2" />
         {/* El widget de One Tap aparece automáticamente */}
         <div id="g_id_onload"
-          data-client_id={CLIENT_ID}
+          data-client_id={config.google.clientId}
           data-context="signin"
           data-ux_mode="popup"
           data-callback=""

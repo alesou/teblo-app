@@ -14,11 +14,7 @@ DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
 NODE_ENV=production
 ```
 
-### Puppeteer (Para Railway)
-```
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-```
+
 
 ### CORS
 ```

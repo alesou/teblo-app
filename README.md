@@ -37,8 +37,8 @@ Una aplicación web simple y moderna para gestionar facturas, clientes y generar
 ### Backend
 - **Node.js** con **Express**
 - **TypeScript** para mayor seguridad
-- **SQLite** con **Prisma** ORM
-- **Puppeteer** para generación de PDFs
+- **PostgreSQL** con **Prisma** ORM
+- **html2canvas + jsPDF** para generación de PDFs en frontend
 
 ### Frontend
 - **React 18** con **TypeScript**

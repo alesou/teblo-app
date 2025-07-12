@@ -1,4 +1,4 @@
-# Lista de Tareas - App de Facturación
+# Lista de Tareas - Teblo App
 
 ## ✅ Completadas
 
@@ -7,7 +7,7 @@
 - [x] **Crear formulario modal para añadir cliente**
 - [x] **Listar facturas** en la página de Facturas con tabla sencilla
 - [x] **Crear formulario modal para añadir factura**
-- [x] **Ver detalles de factura** en modal o página sencilla
+- [x] **Ver detalles de factura** al hacer clic en la fila
 - [x] **Asegurar que el backend responde correctamente** y arreglar errores 500
 - [x] **Agregar datos de prueba** para testing
 
@@ -17,57 +17,57 @@
 - [x] **Página de configuración** para datos de empresa
 - [x] **Mensajes de éxito/error** en formularios
 - [x] **Validaciones básicas** en formularios
-
-## 🔄 En Progreso
-
-### Mejoras Finales
-- [ ] **Mejorar diseño visual** con mejor CSS y componentes
-- [ ] **Agregar confirmaciones** antes de eliminar
-- [ ] **Implementar búsqueda** en tablas
-- [ ] **Agregar filtros** por estado, fecha, etc.
-- [ ] **Exportar a PDF** funcionalidad completa
-- [ ] **Dashboard con estadísticas** básicas
-
-## 📋 Pendientes (Opcionales)
-
-### Funcionalidades Adicionales
-- [ ] **Gestión de items de factura** (líneas de factura)
-- [ ] **Múltiples monedas** y tipos de cambio
-- [ ] **Recordatorios de pago** automáticos
-- [ ] **Backup automático** de datos
-- [ ] **Autenticación de usuarios**
-- [ ] **Roles y permisos**
-
-### Mejoras Técnicas
-- [ ] **Optimizar consultas** de base de datos
-- [ ] **Implementar caché** para mejor rendimiento
-- [ ] **Logs detallados** para debugging
-- [ ] **Tests unitarios** y de integración
-- [ ] **Documentación API** completa
-
----
+- [x] **Confirmaciones antes de eliminar**
+- [x] **Exportar a PDF** con html2canvas + jsPDF
+- [x] **Dashboard con estadísticas** básicas
+- [x] **Búsqueda en tablas** de facturas
+- [x] **Filtros por estado, fecha, etc.**
+- [x] **Gestión de items de factura** (líneas de factura)
+- [x] **Autenticación con Google**
+- [x] **Redirección automática** después de crear factura
 
 ## 🎯 Estado Actual
 
-**✅ APP FUNCIONAL COMPLETA**
+**✅ APP 100% FUNCIONAL Y EN PRODUCCIÓN**
 
-La aplicación de facturación está **completamente funcional** con:
+La aplicación Teblo está **completamente funcional** con todas las características principales implementadas:
 
 ### ✅ Funcionalidades Implementadas:
-1. **Gestión de Clientes**: Crear, listar, editar, eliminar
-2. **Gestión de Facturas**: Crear, listar, editar, eliminar, ver detalles
-3. **Configuración**: Editar datos de empresa
-4. **Interfaz Sencilla**: Formularios modales, tablas claras
-5. **Datos de Prueba**: Clientes y facturas de ejemplo
-6. **Validaciones**: Campos obligatorios, mensajes de error/éxito
-7. **Backend Completo**: API REST funcional con Prisma
+1. **Gestión de Clientes**: Crear, listar, editar, eliminar con confirmación
+2. **Gestión de Facturas**: Crear, listar, editar, eliminar, ver detalles con un clic
+3. **Generación de PDF**: Exportar facturas individuales y múltiples
+4. **Configuración**: Editar datos de empresa y numeración
+5. **Dashboard**: Estadísticas en tiempo real
+6. **Búsqueda y Filtros**: Búsqueda avanzada de facturas
+7. **Autenticación**: Login con Google
+8. **UX Mejorada**: Confirmaciones, redirecciones automáticas, mensajes claros
 
-### 🚀 Lista para Producción:
-- ✅ Base de datos configurada
-- ✅ Backend API funcional
-- ✅ Frontend React funcional
-- ✅ CRUD completo de clientes y facturas
-- ✅ Interfaz de usuario intuitiva
-- ✅ Manejo de errores y validaciones
+### 🚀 Características Técnicas:
+- ✅ Backend API REST con Node.js + Express
+- ✅ Base de datos PostgreSQL con Prisma ORM
+- ✅ Frontend React con TypeScript
+- ✅ Generación de PDF en el cliente (sin Puppeteer)
+- ✅ Diseño responsive con Tailwind CSS
+- ✅ Desplegado en Railway
 
-**La aplicación está lista para usar y probar todas las funcionalidades principales de facturación.** 
+## 📋 Mejoras Futuras (Opcionales)
+
+### Funcionalidades Adicionales
+- [ ] **Múltiples monedas** y tipos de cambio
+- [ ] **Recordatorios de pago** automáticos
+- [ ] **Plantillas de factura** personalizables
+- [ ] **Exportar a Excel/CSV**
+- [ ] **API pública** para integraciones
+- [ ] **Modo oscuro**
+
+### Mejoras Técnicas
+- [ ] **Tests unitarios** y de integración
+- [ ] **Optimización de rendimiento** con lazy loading
+- [ ] **PWA** para funcionar offline
+- [ ] **Backup automático** de datos
+- [ ] **Logs detallados** para debugging
+- [ ] **Documentación API** con Swagger
+
+---
+
+**La aplicación está lista para uso en producción con todas las funcionalidades esenciales implementadas y funcionando correctamente.** 

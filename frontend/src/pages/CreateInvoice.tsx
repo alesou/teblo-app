@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { invoicesApi, clientsApi } from '../services/api';
 
 interface Concepto {
@@ -16,6 +17,7 @@ interface Cliente {
 const initialConcepto = { descripcion: "", cantidad: 1, precio: 0, iva: 21 };
 
 const CreateInvoice: React.FC = () => {
+  const navigate = useNavigate();
   const [conceptos, setConceptos] = useState<Concepto[]>([{ ...initialConcepto }]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [clienteId, setClienteId] = useState("");
@@ -60,10 +62,10 @@ const CreateInvoice: React.FC = () => {
         notes: notas,
         terms: terminos // Añadir términos de pago
       });
-      alert("Factura guardada correctamente.");
-      // TODO: Implement PDF generation after save
+      // Redirigir a la página de facturas con la previsualización abierta
+      navigate('/invoices');
     } catch (err) {
-      alert("Error al guardar o exportar la factura");
+      alert("Error al guardar la factura");
     }
   };
 

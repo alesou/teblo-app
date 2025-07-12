@@ -6,7 +6,6 @@ import invoicesRouter from "./routes/invoices";
 import settingsRouter from "./routes/settings";
 
 import path from 'path';
-// import { authHandler } from './auth';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -75,79 +74,7 @@ async function initializeSettings() {
   }
 }
 
-// Add sample data for testing
-// async function addSampleData() {
-//   try {
-//     // Check if we already have data
-//     const clientCount = await prisma.client.count();
-//     if (clientCount > 0) {
-//       console.log("Sample data already exists, skipping...");
-//       return;
-//     }
-//     // Create sample clients
-//     const client1 = await prisma.client.create({
-//       data: {
-//         name: "Empresa ABC",
-//         nif: "A12345678",
-//         address: "Calle Mayor 1, Madrid",
-//         email: "contacto@empresaabc.com",
-//         phone: "912345678"
-//       }
-//     });
-//     const client2 = await prisma.client.create({
-//       data: {
-//         name: "Consultoría XYZ",
-//         nif: "B87654321",
-//         address: "Avenida Gran Vía 50, Barcelona",
-//         email: "info@consultoriaxyz.com",
-//         phone: "934567890"
-//       }
-//     });
-//     const client3 = await prisma.client.create({
-//       data: {
-//         name: "Startup Innovación",
-//         nif: "C11223344",
-//         address: "Calle Tech 15, Valencia",
-//         email: "hello@startupinnovacion.com",
-//         phone: "961234567"
-//       }
-//     });
-//     // Create sample invoices
-//     await prisma.invoice.create({
-//       data: {
-//         number: "FAC-001",
-//         date: new Date("2024-01-15"),
-//         status: "PAID",
-//         total: 1500.00,
-//         notes: "Desarrollo de aplicación web",
-//         clientId: client1.id
-//       }
-//     });
-//     await prisma.invoice.create({
-//       data: {
-//         number: "FAC-002",
-//         date: new Date("2024-02-20"),
-//         status: "PENDING",
-//         total: 2500.00,
-//         notes: "Consultoría de marketing digital",
-//         clientId: client2.id
-//       }
-//     });
-//     await prisma.invoice.create({
-//       data: {
-//         number: "FAC-003",
-//         date: new Date("2024-03-10"),
-//         status: "PENDING",
-//         total: 800.00,
-//         notes: "Diseño de logo y branding",
-//         clientId: client3.id
-//       }
-//     });
-//     console.log("Sample data added successfully");
-//   } catch (error) {
-//     console.error("Error adding sample data:", error);
-//   }
-// }
+
 
 // Start server
 async function startServer() {
@@ -170,7 +97,6 @@ async function startServer() {
     console.log("Database connected successfully");
     
     await initializeSettings();
-//    await addSampleData();
     
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);

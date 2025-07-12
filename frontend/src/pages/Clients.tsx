@@ -88,6 +88,9 @@ const Clients: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("¿Estás seguro de que quieres eliminar este cliente? Esta acción no se puede deshacer.")) {
+      return;
+    }
     setDeleteId(id);
     setDeleteError(null);
     try {

@@ -6,7 +6,6 @@ import Clients from './pages/Clients';
 import Invoices from './pages/Invoices';
 import Settings from './pages/Settings';
 import CreateInvoice from './pages/CreateInvoice';
-import EditInvoice from './pages/EditInvoice';
 import Welcome from './pages/Welcome';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './firebase';
@@ -38,7 +37,6 @@ function App() {
           <Route path="/clients" element={<Clients />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/invoices/new" element={<CreateInvoice />} />
-          <Route path="/invoices/:id/edit" element={<EditInvoice />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>
