@@ -1,4 +1,4 @@
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import type { Invoice, Settings } from '../types';
@@ -12,7 +12,18 @@ interface PDFGeneratorProps {
 
 const PDFGenerator = forwardRef<() => void, PDFGeneratorProps>(({ invoice, settings, onGenerate, hidden }, ref) => {
   const invoiceRef = useRef<HTMLDivElement>(null);
+  const [logoOk, setLogoOk] = useState(true);
 
+  useEffect(() => {
+    if (settings.logoUrl) {
+      fetch(settings.logoUrl, { method: 'HEAD' })
+        .then(res => setLogoOk(res.ok))
+        .catch(() => setLogoOk(false));
+    } else {
+      setLogoOk(false);
+    }
+  }, [settings.logoUrl]);
+  
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
   
@@ -76,7 +87,7 @@ const PDFGenerator = forwardRef<() => void, PDFGeneratorProps>(({ invoice, setti
           <div className="bg-white p-8 rounded shadow border max-w-2xl mx-auto mt-4" style={{ fontFamily: 'Arial, sans-serif' }}>
             <div className="flex justify-between items-start border-b pb-6 mb-6">
               <div>
-                {settings.logoUrl && (
+                {settings.logoUrl && logoOk && (
                   <img
                     src={settings.logoUrl}
                     alt="Logo"
@@ -196,7 +207,7 @@ const PDFGenerator = forwardRef<() => void, PDFGeneratorProps>(({ invoice, setti
         {/* Copiar el contenido visual de la factura aquí, igual que en el render hidden */}
         <div className="flex justify-between items-start border-b pb-6 mb-6">
           <div>
-            {settings.logoUrl && (
+            {settings.logoUrl && logoOk && (
               <img
                 src={settings.logoUrl}
                 alt="Logo"
