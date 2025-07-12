@@ -14,7 +14,7 @@ import {
 const getApiBaseURL = () => {
   // Production: use environment variable or real backend URL
   if (import.meta.env.PROD) {
-    return import.meta.env.VITE_API_URL || 'https://teblo-backend-production.up.railway.app/api';
+    return import.meta.env.VITE_API_URL || 'https://api.teblo.app';
   }
   // Development: use local backend
   return 'http://localhost:3001/api';
