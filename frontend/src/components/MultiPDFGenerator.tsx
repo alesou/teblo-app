@@ -26,7 +26,6 @@ const MultiPDFGenerator: React.FC<MultiPDFGeneratorProps> = ({ invoices, setting
         });
         const imgData = canvas.toDataURL('image/png');
         const imgWidth = 210;
-        const pageHeight = 295;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         let position = 0;
         if (i > 0) pdf.addPage();
