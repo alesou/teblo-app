@@ -14,7 +14,14 @@ export const railwayConfig = {
       '--disable-extensions',
       '--disable-background-timer-throttling',
       '--disable-backgrounding-occluded-windows',
-      '--disable-renderer-backgrounding'
+      '--disable-renderer-backgrounding',
+      '--disable-features=VizDisplayCompositor',
+      '--disable-features=TranslateUI',
+      '--disable-features=BlinkGenPropertyTrees',
+      '--disable-ipc-flooding-protection',
+      '--disable-web-security',
+      '--disable-features=site-per-process',
+      '--single-process'
     ]
   },
   

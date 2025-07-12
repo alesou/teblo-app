@@ -34,8 +34,11 @@ router.get('/invoice/:id', async (req, res) => {
     
     const html = generateInvoiceHTML(invoice, settings);
     
+    console.log('Launching Puppeteer with config:', getPuppeteerConfig());
     const browser = await puppeteer.launch(getPuppeteerConfig());
+    console.log('Browser launched successfully');
     const page = await browser.newPage();
+    console.log('New page created');
     
     // Configurar timeouts más largos
     await page.setDefaultTimeout(30000);
@@ -154,7 +157,7 @@ function generateInvoiceHTML(invoice: any, settings: any) {
     <head>
       <meta charset="UTF-8">
       <title>Factura ${invoice.number}</title>
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&display=swap" rel="stylesheet" onerror="console.log('Font loading failed')">
       <style>
         body {
           font-family: 'Segoe UI', 'Arial', 'Roboto', sans-serif;
