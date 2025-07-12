@@ -41,7 +41,6 @@ export interface Settings {
   companyAddress?: string;
   companyPhone?: string;
   companyWeb?: string;
-  logoUrl?: string;
   invoicePrefix: string;
   nextNumber: number;
   terms?: string;
@@ -85,6 +84,5 @@ export interface UpdateSettingsData {
   companyName: string;
   companyNif?: string;
   companyAddress?: string;
-  logoUrl?: string;
   invoicePrefix: string;
 } 

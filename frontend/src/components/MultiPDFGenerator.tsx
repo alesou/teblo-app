@@ -48,14 +48,6 @@ const MultiPDFGenerator: React.FC<MultiPDFGeneratorProps> = ({ invoices, setting
           <div className="bg-white p-8 rounded shadow border max-w-2xl mx-auto mt-4" style={{ fontFamily: 'Arial, sans-serif' }}>
             <div className="flex justify-between items-start border-b pb-6 mb-6">
               <div>
-                {settings.logoUrl && (
-                  <img
-                    src={settings.logoUrl}
-                    alt="Logo"
-                    className="mb-2 max-h-14 max-w-xs rounded bg-white border border-gray-100"
-                    style={{ objectFit: "contain" }}
-                  />
-                )}
                 <div className="font-bold text-lg">{settings.companyName}</div>
                 {settings.companyNif && <div className="text-sm">NIF: {settings.companyNif}</div>}
                 {settings.companyAddress && <div className="text-sm">{settings.companyAddress}</div>}

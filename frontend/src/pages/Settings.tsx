@@ -50,33 +50,6 @@ const SettingsPage: React.FC = () => {
     setSettings({ ...settings, [e.target.name]: e.target.value });
   };
 
-  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    const formData = new FormData();
-    formData.append('logo', file);
-    
-    try {
-      const response = await fetch('https://api.teblo.app/api/settings/upload-logo', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error('Error al subir el logo');
-      }
-      
-      const data = await response.json();
-      const logoUrl = `https://api.teblo.app${data.url}`;
-      setSettings({ ...settings, logoUrl });
-      alert('Logo subido correctamente');
-    } catch (err) {
-      console.error('Error uploading logo:', err);
-      alert('Error al subir el logo. Por favor, intenta de nuevo.');
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -129,28 +102,6 @@ const SettingsPage: React.FC = () => {
               value={settings.companyAddress || ""}
               onChange={handleInput}
               className="w-full border px-3 py-2 rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Logo</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoChange}
-              className="w-full border px-3 py-2 rounded"
-            />
-            {settings.logoUrl && (
-              <div className="mt-2">
-                <img src={settings.logoUrl.startsWith('http') ? settings.logoUrl : settings.logoUrl} alt="Logo" style={{ maxHeight: 80, maxWidth: 200, objectFit: 'contain', background: '#fff', borderRadius: 8, border: '1px solid #eee' }} />
-              </div>
-            )}
-            <input
-              type="text"
-              name="logoUrl"
-              value={settings.logoUrl || ""}
-              onChange={handleInput}
-              className="w-full border px-3 py-2 rounded mt-2"
-              placeholder="o pega una URL de imagen"
             />
           </div>
           <div>
