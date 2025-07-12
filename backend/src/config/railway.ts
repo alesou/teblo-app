@@ -10,9 +10,11 @@ export const railwayConfig = {
       '--disable-gpu',
       '--disable-extensions',
       '--disable-web-security',
-      '--disable-features=VizDisplayCompositor'
-    ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome' || undefined
+      '--disable-features=VizDisplayCompositor',
+      '--disable-features=site-per-process',
+      '--disable-software-rasterizer'
+    ]
+    // Let puppeteer find Chrome automatically
   },
   
   // Database configuration

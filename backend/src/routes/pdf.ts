@@ -26,8 +26,27 @@ router.get('/test', async (req, res) => {
   }
 });
 
-// Use Railway-optimized Puppeteer configuration
-const getPuppeteerConfig = () => railwayConfig.puppeteer;
+// Use Railway-optimized Puppeteer configuration with fallbacks
+const getPuppeteerConfig = () => {
+  const config: any = { ...railwayConfig.puppeteer };
+  
+  // Try different Chrome paths in order
+  const chromePaths = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/opt/google/chrome/chrome'
+  ].filter(Boolean);
+  
+  // Use first available Chrome path
+  if (chromePaths.length > 0) {
+    config.executablePath = chromePaths[0];
+  }
+  
+  return config;
+};
 
 // Generate PDF for single invoice
 router.get('/invoice/:id', async (req, res) => {
