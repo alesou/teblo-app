@@ -27,6 +27,18 @@ app.use(express.json());
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Serve frontend static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+  
+  // Handle React Router - send all non-API requests to index.html
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+    }
+  });
+}
+
 app.use("/api/clients", clientsRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/invoices", invoicesRouter);
