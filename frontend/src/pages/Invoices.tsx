@@ -297,31 +297,11 @@ const Invoices: React.FC = () => {
                   </span>
                 </td>
                 <td className="border px-4 py-2">€{invoice.total.toFixed(2)}</td>
-                <td className="border px-4 py-2">
-                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={() => handleEdit(invoice)}
-                      className="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(invoice.id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
-                    >
-                      Eliminar
-                    </button>
-                    <button
-                      onClick={e => { e.stopPropagation(); openPaidModal(invoice); }}
-                      className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
-                      title="Marcar como pagada o pagada parcialmente"
-                    >
-                      Marcar pagada
-                    </button>
-                    {settings && (
-                      <PDFGenerator invoice={invoice} settings={settings} />
-                    )}
-                  </div>
+                <td className="border px-4 py-2 flex gap-2 items-center">
+                  <button onClick={() => handleEdit(invoice)} className="bg-yellow-400 text-white px-2 py-1 rounded text-xs">Editar</button>
+                  <button onClick={() => handleDelete(invoice.id)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
+                  <button onClick={() => openPaidModal(invoice)} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
+                  <button onClick={() => { setSelectedInvoice(invoice); setShowDetailModal(true); }} className="bg-blue-600 text-white px-2 py-1 rounded text-xs">Generar PDF</button>
                 </td>
               </tr>
             ))}
