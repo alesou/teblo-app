@@ -130,31 +130,6 @@ const Invoices: React.FC = () => {
     }
   };
 
-  const handleMarkAsPaid = async (invoice: Invoice) => {
-    const defaultAmount = invoice.total.toFixed(2);
-    const input = prompt('Introduce el importe pagado:', defaultAmount);
-    if (input === null) return; // Cancelado
-    const amountPaid = parseFloat(input.replace(',', '.'));
-    if (isNaN(amountPaid) || amountPaid <= 0) {
-      alert('Importe no válido');
-      return;
-    }
-    try {
-      await axios.put(`/api/invoices/${invoice.id}`, {
-        ...invoice,
-        status: 'PAID',
-        amountPaid,
-        // Aseguramos que items y client no se pierdan
-        items: invoice.items || [],
-        client: invoice.client || undefined
-      });
-      fetchInvoices();
-      alert('Factura marcada como pagada');
-    } catch (err) {
-      alert('Error al marcar como pagada');
-    }
-  };
-
   // Cargar historial de pagos al abrir el modal de detalles
   const handleRowClick = async (invoice: Invoice) => {
     try {

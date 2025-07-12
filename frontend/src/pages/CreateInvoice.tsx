@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import axios from "axios";
 import { invoicesApi, pdfApi } from '../services/api';
 
