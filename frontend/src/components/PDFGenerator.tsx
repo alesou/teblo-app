@@ -10,9 +10,9 @@ interface PDFGeneratorProps {
   hidden?: boolean;
 }
 
-const PDFGenerator = forwardRef<() => void, PDFGeneratorProps>(({ invoice, settings, onGenerate, hidden }, ref) => {
+const PDFGenerator = forwardRef<{ generatePDF: () => void, logoOk: boolean | undefined }, PDFGeneratorProps>(({ invoice, settings, onGenerate, hidden }, ref) => {
   const invoiceRef = useRef<HTMLDivElement>(null);
-  const [logoOk, setLogoOk] = useState(true);
+  const [logoOk, setLogoOk] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
     if (settings.logoUrl) {
@@ -76,7 +76,11 @@ const PDFGenerator = forwardRef<() => void, PDFGeneratorProps>(({ invoice, setti
     }
   };
 
-  useImperativeHandle(ref, () => generatePDF);
+  // Exponer logoOk al padre si lo necesita
+  useImperativeHandle(ref, () => ({
+    generatePDF,
+    logoOk
+  }));
 
   if (hidden) {
     return (
