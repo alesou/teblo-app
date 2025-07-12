@@ -36,7 +36,13 @@ router.get('/invoice/:id', async (req, res) => {
     
     const browser = await puppeteer.launch(getPuppeteerConfig());
     const page = await browser.newPage();
-    await page.setContent(html);
+    
+    // Configurar timeouts más largos
+    await page.setDefaultTimeout(30000);
+    await page.setDefaultNavigationTimeout(30000);
+    
+    // Configurar el HTML con manejo de errores
+    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
     
     const pdf = await page.pdf({
       format: 'A4',
@@ -45,7 +51,8 @@ router.get('/invoice/:id', async (req, res) => {
         right: '20mm',
         bottom: '20mm',
         left: '20mm'
-      }
+      },
+      printBackground: true
     });
     
     await browser.close();
@@ -94,7 +101,13 @@ router.post('/invoices', async (req, res) => {
     
     const browser = await puppeteer.launch(getPuppeteerConfig());
     const page = await browser.newPage();
-    await page.setContent(html);
+    
+    // Configurar timeouts más largos
+    await page.setDefaultTimeout(30000);
+    await page.setDefaultNavigationTimeout(30000);
+    
+    // Configurar el HTML con manejo de errores
+    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
     
     const pdf = await page.pdf({
       format: 'A4',
@@ -103,7 +116,8 @@ router.post('/invoices', async (req, res) => {
         right: '20mm',
         bottom: '20mm',
         left: '20mm'
-      }
+      },
+      printBackground: true
     });
     
     await browser.close();
@@ -128,7 +142,7 @@ function generateInvoiceHTML(invoice: any, settings: any) {
   const totalIVA = invoice.items.reduce((sum: number, item: any) => sum + calculateVAT(item), 0);
 
   const logoHtml = settings?.logoUrl
-    ? `<img src="${settings.logoUrl.startsWith('http') ? settings.logoUrl : 'http://localhost:3001' + settings.logoUrl}" alt="Logo" style="max-height:50px; max-width:140px; object-fit:contain; margin-bottom:8px; border-radius:8px; background:#fff; border:1px solid #e5e7eb;" />`
+    ? `<img src="${settings.logoUrl.startsWith('http') ? settings.logoUrl : 'https://api.teblo.app' + settings.logoUrl}" alt="Logo" style="max-height:50px; max-width:140px; object-fit:contain; margin-bottom:8px; border-radius:8px; background:#fff; border:1px solid #e5e7eb;" onerror="this.style.display='none'" />`
     : '';
 
   // Términos de pago
