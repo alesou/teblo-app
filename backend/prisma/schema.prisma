@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  name      String
+  nif       String?
+  address   String?
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  invoices  Invoice[]
+
+  @@map("clients")
+}
+
+model Invoice {
+  id        String        @id @default(uuid())
+  number    String        @unique
+  date      DateTime      @default(now())
+  dueDate   DateTime?
+  status    String        @default("PENDING") // Puede ser PENDING, PAID, CANCELLED, PARTIALLY_PAID
+  total     Float         @default(0)
+  amountPaid Float?
+  paidAt    DateTime?     // Fecha de pago
+  notes     String?
+  clientId  String
+  client    Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  items     InvoiceItem[]
+  payments  Payment[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String  @id @default(uuid())
+  description String
+  quantity    Float   @default(1)
+  price       Float   @default(0)
+  vatRate     Float   @default(21)
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount    Float
+  date      DateTime
+  type      String   // 'PAID' o 'PARTIALLY_PAID'
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@map("payments")
+}
+
+model Settings {
+  id            String @id @default("settings")
+  companyName   String @default("Mi Empresa")
+  companyNif    String?
+  companyAddress String?
+  logoUrl       String?
+  invoicePrefix String @default("FAC")
+  nextNumber    Int    @default(1)
+  companyPhone  String?
+  companyWeb    String?
+
+  @@map("settings")
+}
+
+ 
