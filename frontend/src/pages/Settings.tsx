@@ -53,8 +53,28 @@ const SettingsPage: React.FC = () => {
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // TODO: Implement logo upload API
-    alert('Funcionalidad de subida de logo temporalmente deshabilitada. Por favor, usa la URL directa.');
+    
+    const formData = new FormData();
+    formData.append('logo', file);
+    
+    try {
+      const response = await fetch('https://api.teblo.app/api/settings/upload-logo', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al subir el logo');
+      }
+      
+      const data = await response.json();
+      const logoUrl = `https://api.teblo.app${data.url}`;
+      setSettings({ ...settings, logoUrl });
+      alert('Logo subido correctamente');
+    } catch (err) {
+      console.error('Error uploading logo:', err);
+      alert('Error al subir el logo. Por favor, intenta de nuevo.');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

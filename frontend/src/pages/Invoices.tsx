@@ -124,11 +124,11 @@ const Invoices: React.FC = () => {
       // Cargar settings al abrir el modal
       const settingsRes = await settingsApi.get();
       setSettings(settingsRes);
-      // Cargar historial de pagos - this API might not exist, so we'll handle it gracefully
+      // Cargar historial de pagos
       try {
-        // const paymentsRes = await axios.get(`/api/invoices/${invoice.id}/payments`);
-        // setPayments(paymentsRes.data);
-        setPayments([]); // For now, set empty array
+        const paymentsResponse = await fetch(`https://api.teblo.app/api/invoices/${invoice.id}/payments`);
+        const paymentsData = await paymentsResponse.json();
+        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
       } catch (paymentsErr) {
         setPayments([]);
       }
@@ -154,49 +154,46 @@ const Invoices: React.FC = () => {
       return;
     }
     try {
+      // Registrar el pago en el historial
+      await fetch(`https://api.teblo.app/api/invoices/${paidInvoice.id}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amountPaid,
+          date: paidDate,
+          type: paidType,
+          note: `Pago registrado - ${paidType === 'PAID' ? 'Total' : 'Parcial'}`
+        })
+      });
+      
+      // Actualizar el estado de la factura
+      const newStatus = paidType === 'PAID' ? 'PAID' : 'PENDING';
       await invoicesApi.update(paidInvoice.id, {
         date: paidInvoice.date,
-        status: paidType as 'PAID' | 'PENDING' | 'CANCELLED',
+        status: newStatus,
         items: paidInvoice.items || [],
         notes: paidInvoice.notes
       });
+      
       setShowPaidModal(false);
       fetchInvoices();
-      alert('Factura actualizada');
+      alert('Pago registrado correctamente');
     } catch (err) {
-      alert('Error al marcar como pagada');
+      alert('Error al registrar el pago');
     }
   };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // For now, just get all invoices and filter on frontend
-      // In a real app, you'd implement search on the backend
-      const allInvoices = await invoicesApi.getAll();
-      let filteredInvoices = allInvoices as InvoiceWithExtras[];
+      const params = new URLSearchParams();
+      if (search) params.append('q', search);
+      if (searchDate) params.append('date', searchDate);
+      if (searchTotal) params.append('total', searchTotal);
       
-      if (search) {
-        filteredInvoices = filteredInvoices.filter(inv => 
-          inv.number.toLowerCase().includes(search.toLowerCase()) ||
-          inv.client.name.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      
-      if (searchDate) {
-        filteredInvoices = filteredInvoices.filter(inv => 
-          inv.date.includes(searchDate)
-        );
-      }
-      
-      if (searchTotal) {
-        const totalAmount = parseFloat(searchTotal);
-        filteredInvoices = filteredInvoices.filter(inv => 
-          inv.total === totalAmount
-        );
-      }
-      
-      setInvoices(filteredInvoices);
+      const response = await fetch(`https://api.teblo.app/api/invoices/search?${params.toString()}`);
+      const searchResults = await response.json();
+      setInvoices(Array.isArray(searchResults) ? searchResults as InvoiceWithExtras[] : []);
     } catch (err) {
       setError('Error buscando facturas');
     }
