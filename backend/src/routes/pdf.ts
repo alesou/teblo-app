@@ -8,6 +8,24 @@ import { railwayConfig } from '../config/railway';
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Test endpoint para verificar que Puppeteer funciona
+router.get('/test', async (req, res) => {
+  try {
+    const browser = await puppeteer.launch(getPuppeteerConfig());
+    const page = await browser.newPage();
+    await page.setContent('<html><body><h1>Test PDF</h1></body></html>');
+    const pdf = await page.pdf({ format: 'A4' });
+    await browser.close();
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="test.pdf"');
+    res.send(pdf);
+  } catch (error) {
+    console.error('PDF test error:', error);
+    res.status(500).json({ error: 'PDF test failed', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 // Use Railway-optimized Puppeteer configuration
 const getPuppeteerConfig = () => railwayConfig.puppeteer;
 
