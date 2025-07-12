@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import InvoicePreview from '../components/InvoicePreview';
 import { settingsApi, invoicesApi, clientsApi } from '../services/api';
-import PDFGenerator from '../components/PDFGenerator';
+import SimplePDFGenerator from '../components/SimplePDFGenerator';
 import MultiPDFGenerator from '../components/MultiPDFGenerator';
 import type { Settings, Invoice } from '../types';
-import { useRef } from 'react';
 
 interface InvoiceWithExtras extends Invoice {
   amountPaid?: number; // Added for editing
@@ -20,7 +18,6 @@ const Invoices: React.FC = () => {
   const [invoices, setInvoices] = useState<InvoiceWithExtras[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -35,14 +32,12 @@ const Invoices: React.FC = () => {
   const [paidAmount, setPaidAmount] = useState('');
   const [paidDate, setPaidDate] = useState('');
   const [paidType, setPaidType] = useState<'PAID' | 'PARTIALLY_PAID'>('PAID');
-  const [payments, setPayments] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [searchDate, setSearchDate] = useState('');
   const [searchTotal, setSearchTotal] = useState('');
   // Estado para controlar la exportación múltiple
   const [exportMultiple, setExportMultiple] = useState(false);
   const [invoicesToExport, setInvoicesToExport] = useState<InvoiceWithExtras[]>([]);
-  const pdfRef = useRef<{ generatePDF: () => void }>(null);
   // Nuevo estado para mostrar la previsualización en la página
   const [showPreview, setShowPreview] = useState(false);
 
@@ -125,27 +120,7 @@ const Invoices: React.FC = () => {
     }
   };
 
-  // Cargar historial de pagos al abrir el modal de detalles
-  const handleRowClick = async (invoice: InvoiceWithExtras) => {
-    try {
-      const invoiceData = await invoicesApi.getById(invoice.id);
-      setSelectedInvoice(invoiceData as InvoiceWithExtras);
-      // Cargar settings al abrir el modal
-      const settingsRes = await settingsApi.get();
-      setSettings(settingsRes);
-      // Cargar historial de pagos
-      try {
-        const paymentsResponse = await fetch(`https://api.teblo.app/api/invoices/${invoice.id}/payments`);
-        const paymentsData = await paymentsResponse.json();
-        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
-      } catch (paymentsErr) {
-        setPayments([]);
-      }
-      setShowDetailModal(true);
-    } catch (err) {
-      setError("Error al cargar los detalles de la factura");
-    }
-  };
+
 
   // Nueva función para mostrar la previsualización en la página
   const handleShowPreview = async (invoice: InvoiceWithExtras) => {
@@ -155,7 +130,6 @@ const Invoices: React.FC = () => {
       const settingsRes = await settingsApi.get();
       setSettings(settingsRes);
       setShowPreview(true);
-      setShowDetailModal(false); // Cerrar modal si está abierto
     } catch (err) {
       setError("Error al cargar los detalles de la factura");
     }
@@ -291,7 +265,7 @@ const Invoices: React.FC = () => {
           </thead>
           <tbody>
             {invoices.map((invoice) => (
-              <tr key={invoice.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleRowClick(invoice)}>
+              <tr key={invoice.id} className="hover:bg-gray-50">
                 <td className="border px-4 py-2">
                   <input
                     type="checkbox"
@@ -316,10 +290,10 @@ const Invoices: React.FC = () => {
                 </td>
                 <td className="border px-4 py-2">€{invoice.total.toFixed(2)}</td>
                 <td className="border px-4 py-2 flex gap-2 items-center">
-                  <button onClick={() => handleEdit(invoice)} className="bg-yellow-400 text-white px-2 py-1 rounded text-xs">Editar</button>
-                  <button onClick={() => handleDelete(invoice.id)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
-                  <button onClick={() => openPaidModal(invoice)} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
-                  <button onClick={() => handleShowPreview(invoice)} className="bg-blue-600 text-white px-2 py-1 rounded text-xs">Generar PDF</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleEdit(invoice); }} className="bg-yellow-400 text-white px-2 py-1 rounded text-xs">Editar</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(invoice.id); }} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
+                  <button onClick={(e) => { e.stopPropagation(); openPaidModal(invoice); }} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleShowPreview(invoice); }} className="bg-blue-600 text-white px-2 py-1 rounded text-xs">Generar PDF</button>
                 </td>
               </tr>
             ))}
@@ -329,34 +303,20 @@ const Invoices: React.FC = () => {
 
       {/* Previsualización en la página principal */}
       {showPreview && selectedInvoice && settings && selectedInvoice.client && selectedInvoice.items && (
-        <div className="mt-8 bg-white p-6 rounded shadow border">
+        <div className="mt-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Previsualización de Factura</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowPreview(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                Cerrar
-              </button>
-              <button
-                onClick={() => pdfRef.current?.generatePDF()}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Generar PDF
-              </button>
-            </div>
+            <button
+              onClick={() => setShowPreview(false)}
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+            >
+              Cerrar previsualización
+            </button>
           </div>
-          <div id="invoice-preview-page" className="border rounded p-4">
-            <InvoicePreview invoice={{...selectedInvoice, client: selectedInvoice.client, items: selectedInvoice.items as any}} settings={settings} />
-            {/* PDFGenerator invisible para exportar al pulsar el botón */}
-            <PDFGenerator
-              ref={pdfRef}
-              invoice={selectedInvoice}
-              settings={settings}
-              hidden
-            />
-          </div>
+          <SimplePDFGenerator
+            invoice={selectedInvoice}
+            settings={settings}
+          />
         </div>
       )}
 
@@ -465,64 +425,7 @@ const Invoices: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de detalles */}
-      {showDetailModal && selectedInvoice && settings && selectedInvoice.client && selectedInvoice.items && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-transparent p-0 rounded-lg max-w-3xl w-full flex flex-col items-center">
-            <div className="relative w-full">
-              <div className="flex justify-end gap-2 pr-8 pt-4">
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 z-10"
-                >
-                  Cerrar
-                </button>
-                <button
-                  onClick={() => pdfRef.current?.generatePDF()}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 z-10"
-                >
-                  Generar PDF
-                </button>
-              </div>
-              <div id="invoice-preview-modal" className="pt-4 pb-4 px-2">
-                <InvoicePreview invoice={{...selectedInvoice, client: selectedInvoice.client, items: selectedInvoice.items as any}} settings={settings} />
-                {/* PDFGenerator invisible para exportar al pulsar el botón */}
-                <PDFGenerator
-                  ref={pdfRef}
-                  invoice={selectedInvoice}
-                  settings={settings}
-                  hidden
-                />
-                {payments.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="font-semibold mb-2 text-gray-700">Historial de pagos</h3>
-                    <table className="w-full text-sm border rounded">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="px-2 py-1 text-left">Fecha</th>
-                          <th className="px-2 py-1 text-right">Importe</th>
-                          <th className="px-2 py-1 text-center">Tipo</th>
-                          <th className="px-2 py-1 text-left">Nota</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {payments.map((p, idx) => (
-                          <tr key={p.id} className={idx % 2 === 0 ? '' : 'bg-gray-50'}>
-                            <td className="px-2 py-1">{new Date(p.date).toLocaleDateString()}</td>
-                            <td className="px-2 py-1 text-right">{p.amount.toFixed(2)} €</td>
-                            <td className="px-2 py-1 text-center">{p.type === 'PAID' ? 'Total' : 'Parcial'}</td>
-                            <td className="px-2 py-1">{p.note || ''}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Modal para pago */}
       {showPaidModal && paidInvoice && (

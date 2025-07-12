@@ -1,5 +1,5 @@
 import { useQuery } from 'react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Users, 
   FileText, 
@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery(
     'invoices',
     invoicesApi.getAll
@@ -31,8 +32,8 @@ const Dashboard = () => {
   const recentInvoices = invoices.slice(0, 5);
 
   const handleDownloadMultiple = () => {
-    // TODO: Implement multiple PDF generation
-    alert('Función de múltiples PDFs en desarrollo');
+    // Redirigir a la página de facturas para usar la funcionalidad de exportación múltiple
+    navigate('/invoices');
   };
 
   if (invoicesLoading || clientsLoading) {
@@ -214,15 +215,12 @@ const Dashboard = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => {
-                          // TODO: Implement single PDF generation
-                          alert('Función de PDF en desarrollo');
-                        }}
+                      <Link
+                        to={`/invoices?preview=${invoice.id}`}
                         className="text-primary-600 hover:text-primary-700"
                       >
                         <Download className="h-4 w-4" />
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}

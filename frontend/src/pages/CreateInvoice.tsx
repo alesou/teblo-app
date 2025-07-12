@@ -98,18 +98,23 @@ const CreateInvoice: React.FC = () => {
         <div>
           <label className="block font-medium mb-2">Conceptos</label>
           {/* Etiquetas de los campos */}
-          <div className="flex gap-2 mb-2 text-xs font-medium text-gray-600 items-center">
-            <span className="flex-1">Descripción</span>
-            <span className="w-16 text-center">Cantidad</span>
-            <span className="w-24 text-center">Precio</span>
-            <span className="w-20 text-center flex items-center justify-center">
-              <span>IVA</span>
-              <span className="ml-1">%</span>
-            </span>
-            <span className="w-16"></span>
+          <div className="flex gap-2 mb-2 text-xs font-medium text-gray-600 items-end">
+            <div className="flex-1 flex flex-col items-start">
+              <span>Descripción</span>
+            </div>
+            <div className="w-16 flex flex-col items-center">
+              <span>Cantidad</span>
+            </div>
+            <div className="w-24 flex flex-col items-center">
+              <span>Precio</span>
+            </div>
+            <div className="w-20 flex flex-col items-center">
+              <span>IVA %</span>
+            </div>
+            <div className="w-16"></div>
           </div>
           {conceptos.map((c, idx) => (
-            <div key={idx} className="flex gap-2 mb-2 items-end">
+            <div key={idx} className="flex gap-2 mb-2 items-center">
               <input
                 className="border rounded px-2 py-1 flex-1"
                 placeholder="Descripción"
@@ -134,7 +139,7 @@ const CreateInvoice: React.FC = () => {
                 onChange={e => handleConceptoChange(idx, "precio", Number(e.target.value))}
                 required
               />
-              <div className="flex items-center w-20">
+              <div className="w-20 flex items-center">
                 <input
                   type="number"
                   className="border rounded px-2 py-1 w-14 text-right"
