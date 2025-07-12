@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { invoicesApi, pdfApi, clientsApi } from '../services/api';
+import { invoicesApi, clientsApi } from '../services/api';
 
 interface Concepto {
   descripcion: string;
@@ -47,7 +47,7 @@ const CreateInvoice: React.FC = () => {
     }
     try {
       // Crear factura en backend
-      const factura = await invoicesApi.create({
+      await invoicesApi.create({
         clientId: clienteId,
         date: fecha,
         dueDate: undefined, // No null, para evitar error de tipo
@@ -60,9 +60,8 @@ const CreateInvoice: React.FC = () => {
         notes: notas,
         terms: terminos // Añadir términos de pago
       });
-      alert("Factura guardada correctamente. Se descargará el PDF.");
-      // Descargar PDF profesional
-      await pdfApi.downloadInvoice(factura.id);
+      alert("Factura guardada correctamente.");
+      // TODO: Implement PDF generation after save
     } catch (err) {
       alert("Error al guardar o exportar la factura");
     }

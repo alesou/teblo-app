@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InvoicePreview from '../components/InvoicePreview';
-import { settingsApi, pdfApi, invoicesApi, clientsApi } from '../services/api';
+import { settingsApi, invoicesApi, clientsApi } from '../services/api';
+import PDFGenerator from '../components/PDFGenerator';
 import type { Settings, Invoice } from '../types';
 
 interface InvoiceWithExtras extends Invoice {
@@ -215,7 +216,12 @@ const Invoices: React.FC = () => {
           </button>
           {selectedIds.length > 0 && (
             <button
-              onClick={() => pdfApi.downloadMultipleInvoices(selectedIds)}
+              onClick={() => {
+                if (settings) {
+                  // TODO: Implement multiple PDF generation
+                  alert('Función de múltiples PDFs en desarrollo');
+                }
+              }}
               className="ml-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
             >
               Descargar seleccionadas
@@ -435,12 +441,12 @@ const Invoices: React.FC = () => {
                 >
                   Cerrar
                 </button>
-                <button
-                  onClick={() => pdfApi.downloadInvoice(selectedInvoice.id)}
-                  className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-                >
-                  Exportar a PDF
-                </button>
+                {settings && (
+                  <PDFGenerator 
+                    invoice={selectedInvoice} 
+                    settings={settings}
+                  />
+                )}
               </div>
               <div id="invoice-preview-modal" className="pt-4 pb-4 px-2">
                 <InvoicePreview invoice={{...selectedInvoice, client: selectedInvoice.client, items: selectedInvoice.items as any}} settings={settings} />

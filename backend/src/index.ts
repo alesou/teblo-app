@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import clientsRouter from "./routes/clients";
 import invoicesRouter from "./routes/invoices";
 import settingsRouter from "./routes/settings";
-import pdfRouter from "./routes/pdf";
+
 import path from 'path';
 // import { authHandler } from './auth';
 
@@ -45,7 +45,7 @@ app.get('/', (req, res) => {
 app.use("/api/clients", clientsRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/invoices", invoicesRouter);
-app.use("/api/pdf", pdfRouter);
+
 // app.use('/api/auth', authHandler);
 
 // Health check endpoint

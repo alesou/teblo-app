@@ -8,7 +8,7 @@ import {
   Plus,
   Download
 } from 'lucide-react';
-import { invoicesApi, clientsApi, pdfApi } from '../services/api';
+import { invoicesApi, clientsApi } from '../services/api';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -31,8 +31,8 @@ const Dashboard = () => {
   const recentInvoices = invoices.slice(0, 5);
 
   const handleDownloadMultiple = () => {
-    const invoiceIds = invoices.map(invoice => invoice.id);
-    pdfApi.downloadMultipleInvoices(invoiceIds);
+    // TODO: Implement multiple PDF generation
+    alert('Función de múltiples PDFs en desarrollo');
   };
 
   if (invoicesLoading || clientsLoading) {
@@ -215,7 +215,10 @@ const Dashboard = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
-                        onClick={() => pdfApi.downloadInvoice(invoice.id)}
+                        onClick={() => {
+                          // TODO: Implement single PDF generation
+                          alert('Función de PDF en desarrollo');
+                        }}
                         className="text-primary-600 hover:text-primary-700"
                       >
                         <Download className="h-4 w-4" />

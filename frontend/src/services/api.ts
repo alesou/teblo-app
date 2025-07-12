@@ -54,35 +54,15 @@ export const settingsApi = {
   update: (data: UpdateSettingsData) => api.put<Settings>('/api/settings', data).then(res => res.data),
 };
 
-// PDF API
+// PDF API - Frontend generation
 export const pdfApi = {
-  downloadInvoice: (id: string) => {
-    return api.get(`/api/pdf/invoice/${id}`, {
-      responseType: 'blob'
-    }).then(res => {
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `factura-${id}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    });
+  downloadInvoice: async (_invoice: Invoice, _settings: Settings) => {
+    // This will be handled by the PDFGenerator component
+    return Promise.resolve();
   },
-  downloadMultipleInvoices: (invoiceIds: string[]) => {
-    return api.post('/api/pdf/invoices', { invoiceIds }, {
-      responseType: 'blob'
-    }).then(res => {
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `facturas-${new Date().toISOString().split('T')[0]}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    });
+  downloadMultipleInvoices: async (_invoices: Invoice[], _settings: Settings) => {
+    // This will be handled by the PDFGenerator component
+    return Promise.resolve();
   },
 };
 

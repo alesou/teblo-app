@@ -26,6 +26,7 @@ export interface Invoice {
   total: number;
   notes?: string;
   terms?: string;
+  amountPaid?: number;
   clientId: string;
   client: Client;
   items: InvoiceItem[];
@@ -38,9 +39,12 @@ export interface Settings {
   companyName: string;
   companyNif?: string;
   companyAddress?: string;
+  companyPhone?: string;
+  companyWeb?: string;
   logoUrl?: string;
   invoicePrefix: string;
   nextNumber: number;
+  terms?: string;
 }
 
 export interface CreateInvoiceData {
