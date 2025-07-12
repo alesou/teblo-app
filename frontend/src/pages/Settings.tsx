@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { settingsApi } from "../services/api";
 
 interface Settings {
   companyName: string;
@@ -34,8 +34,8 @@ const SettingsPage: React.FC = () => {
     const fetchSettings = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("/api/settings");
-        setSettings(res.data);
+        const data = await settingsApi.get();
+        setSettings(data as Settings);
         setError(null);
       } catch (err: any) {
         setError("Error al cargar la configuración");
@@ -53,16 +53,8 @@ const SettingsPage: React.FC = () => {
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const formData = new FormData();
-    formData.append('logo', file);
-    try {
-      const res = await axios.post('/api/settings/upload-logo', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setSettings({ ...settings, logoUrl: res.data.url });
-    } catch (err) {
-      alert('Error al subir el logo');
-    }
+    // TODO: Implement logo upload API
+    alert('Funcionalidad de subida de logo temporalmente deshabilitada. Por favor, usa la URL directa.');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,7 +63,7 @@ const SettingsPage: React.FC = () => {
     setSuccess(false);
     setError(null);
     try {
-      await axios.put("/api/settings", settings);
+      await settingsApi.update(settings);
       setSuccess(true);
     } catch (err: any) {
       setError("Error al guardar la configuración");

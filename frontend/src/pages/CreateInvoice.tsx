@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
-import { invoicesApi, pdfApi } from '../services/api';
+import { invoicesApi, pdfApi, clientsApi } from '../services/api';
 
 interface Concepto {
   descripcion: string;
@@ -26,7 +25,7 @@ const CreateInvoice: React.FC = () => {
   const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    axios.get("/api/clients").then(res => setClientes(res.data));
+    clientsApi.getAll().then(data => setClientes(data));
   }, []);
 
   const handleConceptoChange = (idx: number, field: keyof Concepto, value: any) => {
