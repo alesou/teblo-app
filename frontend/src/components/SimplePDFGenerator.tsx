@@ -19,7 +19,7 @@ const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({ invoice, settin
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(contentRef.current, {
-        scale: 1, // Menor resolución para menor peso
+        scale: 2,
         useCORS: false,
         allowTaint: false,
         backgroundColor: '#ffffff',
@@ -27,19 +27,13 @@ const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({ invoice, settin
         imageTimeout: 0
       });
 
-      // Exportar como JPEG (mucho más ligero que PNG)
-      const imgData = canvas.toDataURL('image/jpeg', 0.85); // 85% calidad
+      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       
       const imgWidth = 190; // Margen de 10mm a cada lado
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Usar compresión 'FAST' si está disponible
-      try {
-        pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight, undefined, 'FAST');
-      } catch {
-        pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-      }
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
       
       const safeClientName = invoice.client.name.replace(/[^a-zA-Z0-9-_]/g, '_');
       pdf.save(`factura-${invoice.number}-${safeClientName}.pdf`);
