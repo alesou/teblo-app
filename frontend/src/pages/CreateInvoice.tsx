@@ -98,11 +98,14 @@ const CreateInvoice: React.FC = () => {
         <div>
           <label className="block font-medium mb-2">Conceptos</label>
           {/* Etiquetas de los campos */}
-          <div className="flex gap-2 mb-2 text-xs font-medium text-gray-600">
+          <div className="flex gap-2 mb-2 text-xs font-medium text-gray-600 items-center">
             <span className="flex-1">Descripción</span>
             <span className="w-16 text-center">Cantidad</span>
             <span className="w-24 text-center">Precio</span>
-            <span className="w-16 text-center">IVA %</span>
+            <span className="w-20 text-center flex items-center justify-center">
+              <span>IVA</span>
+              <span className="ml-1">%</span>
+            </span>
             <span className="w-16"></span>
           </div>
           {conceptos.map((c, idx) => (
@@ -131,17 +134,17 @@ const CreateInvoice: React.FC = () => {
                 onChange={e => handleConceptoChange(idx, "precio", Number(e.target.value))}
                 required
               />
-              <div className="flex flex-col items-center">
-                <span className="text-xs text-gray-600 mb-1">%</span>
+              <div className="flex items-center w-20">
                 <input
                   type="number"
-                  className="border rounded px-2 py-1 w-16"
+                  className="border rounded px-2 py-1 w-14 text-right"
                   min={0}
                   max={21}
                   value={c.iva}
                   onChange={e => handleConceptoChange(idx, "iva", Number(e.target.value))}
                   required
                 />
+                <span className="ml-1 text-gray-600">%</span>
               </div>
               {conceptos.length > 1 && (
                 <button type="button" className="text-red-600 ml-2" onClick={() => removeConcepto(idx)}>

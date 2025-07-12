@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import InvoicePreview from '../components/InvoicePreview';
 import { settingsApi, invoicesApi, clientsApi } from '../services/api';
 import PDFGenerator from '../components/PDFGenerator';
+import MultiPDFGenerator from '../components/MultiPDFGenerator';
 import type { Settings, Invoice } from '../types';
 
 interface InvoiceWithExtras extends Invoice {
@@ -37,6 +38,9 @@ const Invoices: React.FC = () => {
   const [search, setSearch] = useState('');
   const [searchDate, setSearchDate] = useState('');
   const [searchTotal, setSearchTotal] = useState('');
+  // Estado para controlar la exportación múltiple
+  const [exportMultiple, setExportMultiple] = useState(false);
+  const [invoicesToExport, setInvoicesToExport] = useState<InvoiceWithExtras[]>([]);
 
   const fetchInvoices = async () => {
     try {
@@ -214,13 +218,11 @@ const Invoices: React.FC = () => {
           >
             Nueva Factura
           </button>
-          {selectedIds.length > 0 && (
+          {selectedIds.length > 0 && settings && (
             <button
               onClick={() => {
-                if (settings) {
-                  // TODO: Implement multiple PDF generation
-                  alert('Función de múltiples PDFs en desarrollo');
-                }
+                setInvoicesToExport(invoices.filter(inv => selectedIds.includes(inv.id)));
+                setExportMultiple(true);
               }}
               className="ml-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
             >
@@ -316,6 +318,9 @@ const Invoices: React.FC = () => {
                     >
                       Marcar pagada
                     </button>
+                    {settings && (
+                      <PDFGenerator invoice={invoice} settings={settings} />
+                    )}
                   </div>
                 </td>
               </tr>
@@ -524,6 +529,15 @@ const Invoices: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal para exportar múltiples facturas */}
+      {exportMultiple && settings && (
+        <MultiPDFGenerator
+          invoices={invoicesToExport}
+          settings={settings}
+          onClose={() => setExportMultiple(false)}
+        />
       )}
     </div>
   );
