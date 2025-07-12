@@ -43,6 +43,8 @@ const Invoices: React.FC = () => {
   const [exportMultiple, setExportMultiple] = useState(false);
   const [invoicesToExport, setInvoicesToExport] = useState<InvoiceWithExtras[]>([]);
   const pdfRef = useRef<{ generatePDF: () => void }>(null);
+  // Nuevo estado para mostrar la previsualización en la página
+  const [showPreview, setShowPreview] = useState(false);
 
   const fetchInvoices = async () => {
     try {
@@ -140,6 +142,20 @@ const Invoices: React.FC = () => {
         setPayments([]);
       }
       setShowDetailModal(true);
+    } catch (err) {
+      setError("Error al cargar los detalles de la factura");
+    }
+  };
+
+  // Nueva función para mostrar la previsualización en la página
+  const handleShowPreview = async (invoice: InvoiceWithExtras) => {
+    try {
+      const invoiceData = await invoicesApi.getById(invoice.id);
+      setSelectedInvoice(invoiceData as InvoiceWithExtras);
+      const settingsRes = await settingsApi.get();
+      setSettings(settingsRes);
+      setShowPreview(true);
+      setShowDetailModal(false); // Cerrar modal si está abierto
     } catch (err) {
       setError("Error al cargar los detalles de la factura");
     }
@@ -303,13 +319,46 @@ const Invoices: React.FC = () => {
                   <button onClick={() => handleEdit(invoice)} className="bg-yellow-400 text-white px-2 py-1 rounded text-xs">Editar</button>
                   <button onClick={() => handleDelete(invoice.id)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
                   <button onClick={() => openPaidModal(invoice)} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
-                  <button onClick={() => { setSelectedInvoice(invoice); setShowDetailModal(true); }} className="bg-blue-600 text-white px-2 py-1 rounded text-xs">Generar PDF</button>
+                  <button onClick={() => handleShowPreview(invoice)} className="bg-blue-600 text-white px-2 py-1 rounded text-xs">Generar PDF</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Previsualización en la página principal */}
+      {showPreview && selectedInvoice && settings && selectedInvoice.client && selectedInvoice.items && (
+        <div className="mt-8 bg-white p-6 rounded shadow border">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Previsualización de Factura</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowPreview(false)}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cerrar
+              </button>
+              <button
+                onClick={() => pdfRef.current?.generatePDF()}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Generar PDF
+              </button>
+            </div>
+          </div>
+          <div id="invoice-preview-page" className="border rounded p-4">
+            <InvoicePreview invoice={{...selectedInvoice, client: selectedInvoice.client, items: selectedInvoice.items as any}} settings={settings} />
+            {/* PDFGenerator invisible para exportar al pulsar el botón */}
+            <PDFGenerator
+              ref={pdfRef}
+              invoice={selectedInvoice}
+              settings={settings}
+              hidden
+            />
+          </div>
+        </div>
+      )}
 
       {/* Eliminar el modal de nueva factura aquí */}
       {/* Modal para crear factura */}
