@@ -10,7 +10,7 @@ import path from 'path';
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // CORS configuration for separate services
 const corsOptions = {
@@ -155,18 +155,37 @@ async function startServer() {
     console.log("Environment:", process.env.NODE_ENV || 'development');
     console.log("Database URL exists:", !!process.env.DATABASE_URL);
     console.log("Database URL preview:", process.env.DATABASE_URL?.substring(0, 20) + "...");
+    console.log("Port:", PORT);
     
     console.log("Attempting database connection...");
-    await prisma.$connect();
+    
+    // Add timeout to database connection
+    const connectPromise = prisma.$connect();
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database connection timeout after 30 seconds')), 30000);
+    });
+    
+    await Promise.race([connectPromise, timeoutPromise]);
     console.log("Database connected successfully");
     
     await initializeSettings();
 //    await addSampleData();
     
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`Server is ready to accept connections`);
     });
+    
+    // Graceful shutdown
+    process.on('SIGTERM', async () => {
+      console.log('SIGTERM received, shutting down gracefully');
+      server.close(() => {
+        prisma.$disconnect();
+        process.exit(0);
+      });
+    });
+    
   } catch (error) {
     console.error("Error starting server:", error);
     console.error("Full error details:", JSON.stringify(error, null, 2));
