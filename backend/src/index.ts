@@ -16,8 +16,8 @@ const PORT = parseInt(process.env.PORT || '3001', 10);
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        process.env.FRONTEND_URL || 'https://app.teblo.app',
-        'https://app.teblo.app',
+        process.env.FRONTEND_URL || 'https://www.teblo.app',
+        'https://www.teblo.app',
         'https://teblo-frontend-production.up.railway.app',
         'https://*.railway.app',
         'https://*.up.railway.app'
