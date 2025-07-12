@@ -57,7 +57,8 @@ router.get('/invoice/:id', async (req, res) => {
     res.send(pdf);
     
   } catch (error) {
-    res.status(500).json({ error: 'Error generating PDF' });
+    console.error('Error generating PDF:', error);
+    res.status(500).json({ error: 'Error generating PDF', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -112,7 +113,8 @@ router.post('/invoices', async (req, res) => {
     res.send(pdf);
     
   } catch (error) {
-    res.status(500).json({ error: 'Error generating PDF' });
+    console.error('Error generating PDF:', error);
+    res.status(500).json({ error: 'Error generating PDF', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

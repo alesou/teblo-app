@@ -78,7 +78,7 @@ router.get('/:id', async (req, res) => {
 // Create new invoice
 router.post('/', async (req, res) => {
   try {
-    const { clientId, date, dueDate, items, notes, amountPaid, paidAt, status } = req.body;
+    const { clientId, date, dueDate, items, notes, terms, amountPaid, paidAt, status } = req.body;
     
     if (!clientId || !items || items.length === 0) {
       return res.status(400).json({ error: 'Client and items are required' });
@@ -109,6 +109,7 @@ router.post('/', async (req, res) => {
         paidAt: paidAt ? new Date(paidAt) : null,
         status: status || 'PENDING',
         notes,
+        terms,
         clientId,
         items: {
           create: items.map((item: any) => ({
@@ -133,7 +134,8 @@ router.post('/', async (req, res) => {
     
     res.status(201).json(invoice);
   } catch (error) {
-    res.status(500).json({ error: 'Error creating invoice' });
+    console.error('Error creating invoice:', error);
+    res.status(500).json({ error: 'Error creating invoice', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

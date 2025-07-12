@@ -25,6 +25,7 @@ export interface Invoice {
   status: 'PENDING' | 'PAID' | 'CANCELLED';
   total: number;
   notes?: string;
+  terms?: string;
   clientId: string;
   client: Client;
   items: InvoiceItem[];
@@ -48,6 +49,7 @@ export interface CreateInvoiceData {
   dueDate?: string;
   items: InvoiceItem[];
   notes?: string;
+  terms?: string;
 }
 
 export interface UpdateInvoiceData {
@@ -56,6 +58,7 @@ export interface UpdateInvoiceData {
   status: 'PENDING' | 'PAID' | 'CANCELLED';
   items: InvoiceItem[];
   notes?: string;
+  terms?: string;
 }
 
 export interface CreateClientData {

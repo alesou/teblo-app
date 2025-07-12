@@ -57,7 +57,8 @@ const CreateInvoice: React.FC = () => {
           price: c.precio,
           vatRate: c.iva
         })),
-        notes: notas
+        notes: notas,
+        terms: terminos // Añadir términos de pago
       });
       alert("Factura guardada correctamente. Se descargará el PDF.");
       // Descargar PDF profesional
@@ -97,6 +98,14 @@ const CreateInvoice: React.FC = () => {
         </div>
         <div>
           <label className="block font-medium mb-2">Conceptos</label>
+          {/* Etiquetas de los campos */}
+          <div className="flex gap-2 mb-2 text-xs font-medium text-gray-600">
+            <span className="flex-1">Descripción</span>
+            <span className="w-16 text-center">Cantidad</span>
+            <span className="w-24 text-center">Precio</span>
+            <span className="w-16 text-center">IVA %</span>
+            <span className="w-16"></span>
+          </div>
           {conceptos.map((c, idx) => (
             <div key={idx} className="flex gap-2 mb-2 items-end">
               <input
@@ -123,15 +132,18 @@ const CreateInvoice: React.FC = () => {
                 onChange={e => handleConceptoChange(idx, "precio", Number(e.target.value))}
                 required
               />
-              <input
-                type="number"
-                className="border rounded px-2 py-1 w-16"
-                min={0}
-                max={21}
-                value={c.iva}
-                onChange={e => handleConceptoChange(idx, "iva", Number(e.target.value))}
-                required
-              />
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-gray-600 mb-1">%</span>
+                <input
+                  type="number"
+                  className="border rounded px-2 py-1 w-16"
+                  min={0}
+                  max={21}
+                  value={c.iva}
+                  onChange={e => handleConceptoChange(idx, "iva", Number(e.target.value))}
+                  required
+                />
+              </div>
               {conceptos.length > 1 && (
                 <button type="button" className="text-red-600 ml-2" onClick={() => removeConcepto(idx)}>
                   Eliminar
