@@ -15,7 +15,12 @@ const PORT = process.env.PORT || 3001;
 // CORS configuration for separate services
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://teblo-frontend.railway.app', 'https://*.railway.app']
+    ? [
+        process.env.FRONTEND_URL || 'https://teblo-frontend-production.up.railway.app',
+        'https://teblo-frontend-production.up.railway.app',
+        'https://*.railway.app',
+        'https://*.up.railway.app'
+      ]
     : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true,
   optionsSuccessStatus: 200
