@@ -1,19 +1,17 @@
 import { useQuery } from 'react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   Users, 
   FileText, 
   DollarSign, 
   TrendingUp,
-  Plus,
-  Download
+  Plus
 } from 'lucide-react';
 import { invoicesApi, clientsApi } from '../services/api';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery(
     'invoices',
     invoicesApi.getAll
@@ -31,10 +29,7 @@ const Dashboard = () => {
 
   const recentInvoices = invoices.slice(0, 5);
 
-  const handleDownloadMultiple = () => {
-    // Redirigir a la página de facturas para usar la funcionalidad de exportación múltiple
-    navigate('/invoices');
-  };
+
 
   if (invoicesLoading || clientsLoading) {
     return (
@@ -60,13 +55,6 @@ const Dashboard = () => {
             <Plus className="mr-2 h-4 w-4" />
             Nueva Factura
           </Link>
-          <button
-            onClick={handleDownloadMultiple}
-            className="btn btn-secondary flex items-center"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Descargar Todas
-          </button>
         </div>
       </div>
 
@@ -176,12 +164,9 @@ const Dashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Total
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
+                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Estado
+                    </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -213,14 +198,6 @@ const Dashboard = () => {
                         {invoice.status === 'PAID' ? 'Pagada' : 
                          invoice.status === 'PENDING' ? 'Pendiente' : 'Cancelada'}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Link
-                        to={`/invoices?preview=${invoice.id}`}
-                        className="text-primary-600 hover:text-primary-700"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Link>
                     </td>
                   </tr>
                 ))}

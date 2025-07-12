@@ -249,6 +249,7 @@ const Invoices: React.FC = () => {
       </form>
 
       <div className="overflow-x-auto">
+        <p className="text-sm text-gray-600 mb-2">Haz clic en cualquier factura para ver la previsualización y generar el PDF</p>
         <table className="min-w-full bg-white border border-gray-300">
           <thead>
             <tr className="bg-gray-100">
@@ -265,8 +266,8 @@ const Invoices: React.FC = () => {
           </thead>
           <tbody>
             {invoices.map((invoice) => (
-              <tr key={invoice.id} className="hover:bg-gray-50">
-                <td className="border px-4 py-2">
+              <tr key={invoice.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleShowPreview(invoice)}>
+                <td className="border px-4 py-2" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(invoice.id)}
@@ -289,11 +290,10 @@ const Invoices: React.FC = () => {
                   </span>
                 </td>
                 <td className="border px-4 py-2">€{invoice.total.toFixed(2)}</td>
-                <td className="border px-4 py-2 flex gap-2 items-center">
-                  <button onClick={(e) => { e.stopPropagation(); handleEdit(invoice); }} className="bg-yellow-400 text-white px-2 py-1 rounded text-xs">Editar</button>
-                  <button onClick={(e) => { e.stopPropagation(); handleDelete(invoice.id); }} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
-                  <button onClick={(e) => { e.stopPropagation(); openPaidModal(invoice); }} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
-                  <button onClick={(e) => { e.stopPropagation(); handleShowPreview(invoice); }} className="bg-blue-600 text-white px-2 py-1 rounded text-xs">Generar PDF</button>
+                <td className="border px-4 py-2 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => handleEdit(invoice)} className="bg-yellow-400 text-white px-2 py-1 rounded text-xs">Editar</button>
+                  <button onClick={() => handleDelete(invoice.id)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
+                  <button onClick={() => openPaidModal(invoice)} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
                 </td>
               </tr>
             ))}
