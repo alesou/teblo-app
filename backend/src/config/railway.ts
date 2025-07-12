@@ -7,22 +7,12 @@ export const railwayConfig = {
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
       '--disable-gpu',
       '--disable-extensions',
-      '--disable-background-timer-throttling',
-      '--disable-backgrounding-occluded-windows',
-      '--disable-renderer-backgrounding',
-      '--disable-features=VizDisplayCompositor',
-      '--disable-features=TranslateUI',
-      '--disable-features=BlinkGenPropertyTrees',
-      '--disable-ipc-flooding-protection',
       '--disable-web-security',
-      '--disable-features=site-per-process',
-      '--single-process'
-    ]
+      '--disable-features=VizDisplayCompositor'
+    ],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
   },
   
   // Database configuration

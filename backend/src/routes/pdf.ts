@@ -41,11 +41,11 @@ router.get('/invoice/:id', async (req, res) => {
     console.log('New page created');
     
     // Configurar timeouts más largos
-    await page.setDefaultTimeout(30000);
-    await page.setDefaultNavigationTimeout(30000);
+    await page.setDefaultTimeout(15000);
+    await page.setDefaultNavigationTimeout(15000);
     
     // Configurar el HTML con manejo de errores
-    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
     
     const pdf = await page.pdf({
       format: 'A4',
@@ -106,11 +106,11 @@ router.post('/invoices', async (req, res) => {
     const page = await browser.newPage();
     
     // Configurar timeouts más largos
-    await page.setDefaultTimeout(30000);
-    await page.setDefaultNavigationTimeout(30000);
+    await page.setDefaultTimeout(15000);
+    await page.setDefaultNavigationTimeout(15000);
     
     // Configurar el HTML con manejo de errores
-    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
     
     const pdf = await page.pdf({
       format: 'A4',
@@ -157,7 +157,7 @@ function generateInvoiceHTML(invoice: any, settings: any) {
     <head>
       <meta charset="UTF-8">
       <title>Factura ${invoice.number}</title>
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&display=swap" rel="stylesheet" onerror="console.log('Font loading failed')">
+
       <style>
         body {
           font-family: 'Segoe UI', 'Arial', 'Roboto', sans-serif;
@@ -187,7 +187,7 @@ function generateInvoiceHTML(invoice: any, settings: any) {
           min-width: 180px;
         }
         .company-info h1 {
-          font-family: 'Poppins', 'Segoe UI', 'Arial', 'Roboto', sans-serif;
+          font-family: 'Segoe UI', 'Arial', 'Roboto', sans-serif;
           font-size: 1.2rem;
           margin: 0 0 4px 0;
           font-weight: 800;
@@ -201,7 +201,7 @@ function generateInvoiceHTML(invoice: any, settings: any) {
           text-align: right;
         }
         .invoice-title {
-          font-family: 'Poppins', 'Segoe UI', 'Arial', 'Roboto', sans-serif;
+          font-family: 'Segoe UI', 'Arial', 'Roboto', sans-serif;
           color: #2563eb;
           font-size: 1.2rem;
           font-weight: 900;
