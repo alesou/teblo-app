@@ -3,9 +3,13 @@ import puppeteer from 'puppeteer';
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
 import fs from 'fs';
+import { railwayConfig } from '../config/railway';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Use Railway-optimized Puppeteer configuration
+const getPuppeteerConfig = () => railwayConfig.puppeteer;
 
 // Generate PDF for single invoice
 router.get('/invoice/:id', async (req, res) => {
@@ -30,7 +34,7 @@ router.get('/invoice/:id', async (req, res) => {
     
     const html = generateInvoiceHTML(invoice, settings);
     
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch(getPuppeteerConfig());
     const page = await browser.newPage();
     await page.setContent(html);
     
@@ -87,7 +91,7 @@ router.post('/invoices', async (req, res) => {
     
     const html = generateMultipleInvoicesHTML(invoices, settings);
     
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch(getPuppeteerConfig());
     const page = await browser.newPage();
     await page.setContent(html);
     
