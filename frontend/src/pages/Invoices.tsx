@@ -72,40 +72,7 @@ const Invoices: React.FC = () => {
 
   // Eliminar handleSubmit, form, formError, setForm, initialForm, showModal y toda la lógica asociada
 
-  const handleEdit = (invoice: InvoiceWithExtras) => {
-    setEditingInvoice(invoice);
-    // Eliminar referencias a form, setForm, setFormError, initialForm, formError
-  };
-
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Eliminar referencias a form, setForm, setFormError, initialForm, formError
-    if (!editingInvoice) {
-      // setFormError("Cliente y total son obligatorios"); // Originalmente estaba aquí
-      return;
-    }
-
-    try {
-      setSaving(true);
-      // setFormError(null); // Originalmente estaba aquí
-      await invoicesApi.update(editingInvoice.id, {
-        date: editingInvoice.date,
-        status: editingInvoice.status,
-        items: editingInvoice.items || [],
-        notes: editingInvoice.notes
-      });
-      setShowEditModal(false);
-      setEditingInvoice(null);
-      // setForm(initialForm); // Originalmente estaba aquí
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-      fetchInvoices();
-    } catch (err: any) {
-      // setFormError("Error al actualizar la factura"); // Originalmente estaba aquí
-    } finally {
-      setSaving(false);
-    }
-  };
+  // Eliminar handleEdit, showEditModal, editingInvoice, handleUpdate y el modal de edición
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Estás seguro de que quieres eliminar esta factura?")) return;
@@ -291,7 +258,6 @@ const Invoices: React.FC = () => {
                 </td>
                 <td className="border px-4 py-2">€{invoice.total.toFixed(2)}</td>
                 <td className="border px-4 py-2 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => handleEdit(invoice)} className="bg-yellow-400 text-white px-2 py-1 rounded text-xs">Editar</button>
                   <button onClick={() => handleDelete(invoice.id)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
                   <button onClick={() => openPaidModal(invoice)} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
                 </td>
@@ -323,109 +289,6 @@ const Invoices: React.FC = () => {
       {/* Eliminar el modal de nueva factura aquí */}
       {/* Modal para crear factura */}
       {/* El modal de nueva factura y su lógica han sido eliminados */}
-
-      {/* Modal para editar factura */}
-      {showEditModal && editingInvoice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Editar Factura</h2>
-            <form onSubmit={handleUpdate}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Cliente *</label>
-                <select
-                  value={editingInvoice.client?.id || ""}
-                  onChange={(e) => setEditingInvoice({...editingInvoice, client: { id: e.target.value, name: editingInvoice?.client?.name || "" } as any})}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                >
-                  <option value="">Seleccionar cliente</option>
-                  {clients.map(client => (
-                    <option key={client.id} value={client.id}>{client.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Fecha</label>
-                <input
-                  type="date"
-                  value={editingInvoice.date.slice(0, 10)}
-                  onChange={(e) => setEditingInvoice({...editingInvoice, date: e.target.value})}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Estado</label>
-                <select
-                  value={editingInvoice.status}
-                  onChange={(e) => setEditingInvoice({...editingInvoice, status: e.target.value as 'PENDING' | 'PAID' | 'CANCELLED'})}
-                  className="w-full border rounded px-3 py-2"
-                >
-                  <option value="PENDING">Pendiente</option>
-                  <option value="PAID">Pagada</option>
-                  <option value="CANCELLED">Cancelada</option>
-                </select>
-              </div>
-              {editingInvoice.status === 'PAID' && (
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1">Cantidad pagada</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={editingInvoice.amountPaid || editingInvoice.total}
-                    onChange={e => setEditingInvoice({...editingInvoice, amountPaid: parseFloat(e.target.value)})}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-              )}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Total *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={editingInvoice.total.toString()}
-                  onChange={(e) => setEditingInvoice({...editingInvoice, total: parseFloat(e.target.value)})}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Notas</label>
-                <textarea
-                  value={editingInvoice.notes || ""}
-                  onChange={(e) => setEditingInvoice({...editingInvoice, notes: e.target.value})}
-                  className="w-full border rounded px-3 py-2"
-                  rows={3}
-                />
-              </div>
-              {/* Eliminar referencias a form, setForm, setFormError, initialForm, formError */}
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-                >
-                  {saving ? "Guardando..." : "Actualizar"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingInvoice(null);
-                    // setForm(initialForm); // Originalmente estaba aquí
-                    // setFormError(null); // Originalmente estaba aquí
-                  }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-
 
       {/* Modal para pago */}
       {showPaidModal && paidInvoice && (
