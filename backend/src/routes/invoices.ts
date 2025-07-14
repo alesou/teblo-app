@@ -1,14 +1,15 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { authenticate, AuthenticatedRequest } from '../authMiddleware';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
 // Buscar facturas por nombre, total o fecha
-router.get('/search', async (req, res) => {
+router.get('/search', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { q, date, total } = req.query;
-    const where: any = {};
+    const where: any = { userId: req.userId };
     if (q) {
       where.OR = [
         { number: { contains: q } },
@@ -34,10 +35,10 @@ router.get('/search', async (req, res) => {
 });
 
 // Get all invoices (con filtro por clientId opcional)
-router.get('/', async (req, res) => {
+router.get('/', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { clientId } = req.query;
-    const where: any = {};
+    const where: any = { userId: req.userId };
     if (clientId) where.clientId = clientId;
     const invoices = await prisma.invoice.findMany({
       where,
@@ -54,7 +55,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get invoice by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const invoice = await prisma.invoice.findUnique({
@@ -64,11 +65,9 @@ router.get('/:id', async (req, res) => {
         items: true
       }
     });
-    
-    if (!invoice) {
+    if (!invoice || invoice.userId !== req.userId) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
-    
     res.json(invoice);
   } catch (error) {
     res.status(500).json({ error: 'Error fetching invoice' });
@@ -76,28 +75,23 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new invoice
-router.post('/', async (req, res) => {
+router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { clientId, date, dueDate, items, notes, terms, amountPaid, paidAt, status } = req.body;
-    
     if (!clientId || !items || items.length === 0) {
       return res.status(400).json({ error: 'Client and items are required' });
     }
-    
     // Get next invoice number
     const settings = await prisma.settings.findUnique({
       where: { id: 'settings' }
     });
-    
     const invoiceNumber = `${settings?.invoicePrefix || 'FAC'}-${settings?.nextNumber || 1}`;
-    
     // Calculate total
     const total = items.reduce((sum: number, item: any) => {
       const subtotal = item.quantity * item.price;
       const vat = subtotal * (item.vatRate / 100);
       return sum + subtotal + vat;
     }, 0);
-    
     // Create invoice with items
     const invoice = await prisma.invoice.create({
       data: {
@@ -111,6 +105,7 @@ router.post('/', async (req, res) => {
         notes,
         terms,
         clientId,
+        userId: req.userId,
         items: {
           create: items.map((item: any) => ({
             description: item.description,
@@ -125,13 +120,11 @@ router.post('/', async (req, res) => {
         items: true
       }
     });
-    
     // Update next number
     await prisma.settings.update({
       where: { id: 'settings' },
       data: { nextNumber: (settings?.nextNumber || 1) + 1 }
     });
-    
     res.status(201).json(invoice);
   } catch (error) {
     console.error('Error creating invoice:', error);
@@ -140,25 +133,27 @@ router.post('/', async (req, res) => {
 });
 
 // Update invoice
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const { date, dueDate, status, notes, items, total, amountPaid, paidAt } = req.body;
-    
+    // Verificar propiedad
+    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    if (!invoice || invoice.userId !== req.userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     // Delete existing items
     await prisma.invoiceItem.deleteMany({
       where: { invoiceId: id }
     });
-    
     // Calculate new total
     const newTotal = items.reduce((sum: number, item: any) => {
       const subtotal = item.quantity * item.price;
       const vat = subtotal * (item.vatRate / 100);
       return sum + subtotal + vat;
     }, 0);
-    
     // Update invoice
-    const invoice = await prisma.invoice.update({
+    const updatedInvoice = await prisma.invoice.update({
       where: { id },
       data: {
         date: new Date(date),
@@ -182,20 +177,23 @@ router.put('/:id', async (req, res) => {
         items: true
       }
     });
-    
-    res.json(invoice);
+    res.json(updatedInvoice);
   } catch (error) {
     res.status(500).json({ error: 'Error updating invoice' });
   }
 });
 
 // Update invoice status
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
-    const invoice = await prisma.invoice.update({
+    // Verificar propiedad
+    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    if (!invoice || invoice.userId !== req.userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const updatedInvoice = await prisma.invoice.update({
       where: { id },
       data: { status },
       include: {
@@ -203,22 +201,24 @@ router.patch('/:id/status', async (req, res) => {
         items: true
       }
     });
-    
-    res.json(invoice);
+    res.json(updatedInvoice);
   } catch (error) {
     res.status(500).json({ error: 'Error updating invoice status' });
   }
 });
 
 // Delete invoice
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-    
+    // Verificar propiedad
+    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    if (!invoice || invoice.userId !== req.userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     await prisma.invoice.delete({
       where: { id }
     });
-    
     res.json({ message: 'Invoice deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Error deleting invoice' });
@@ -226,9 +226,14 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Añadir pago a una factura
-router.post('/:id/payments', async (req, res) => {
+router.post('/:id/payments', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
+    // Verificar propiedad
+    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    if (!invoice || invoice.userId !== req.userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const { amount, date, type, note } = req.body;
     if (!amount || !date || !type) return res.status(400).json({ error: 'Datos de pago incompletos' });
     const payment = await prisma.payment.create({
@@ -246,9 +251,14 @@ router.post('/:id/payments', async (req, res) => {
   }
 });
 // Obtener historial de pagos de una factura
-router.get('/:id/payments', async (req, res) => {
+router.get('/:id/payments', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
+    // Verificar propiedad
+    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    if (!invoice || invoice.userId !== req.userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const payments = await prisma.payment.findMany({
       where: { invoiceId: id },
       orderBy: { date: 'asc' }
