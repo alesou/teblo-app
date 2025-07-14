@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { settingsApi, invoicesApi, clientsApi } from '../services/api';
-import NativePDFGenerator from '../components/NativePDFGenerator';
+import NativePDFGenerator, { InvoicePDF } from '../components/NativePDFGenerator';
 import NativeMultiPDFGenerator from '../components/NativeMultiPDFGenerator';
+import { PDFViewer } from '@react-pdf/renderer';
 import type { Settings, Invoice } from '../types';
 
 interface InvoiceWithExtras extends Invoice {
@@ -313,6 +314,13 @@ const Invoices: React.FC = () => {
               Cerrar previsualización
             </button>
           </div>
+          {/* PDFViewer para previsualización */}
+          <div className="mb-4" style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+            <PDFViewer width="100%" height={600} style={{ border: 'none', width: '100%' }}>
+              <InvoicePDF invoice={selectedInvoice} settings={settings} />
+            </PDFViewer>
+          </div>
+          {/* Botón de descarga */}
           <NativePDFGenerator
             invoice={selectedInvoice}
             settings={settings}

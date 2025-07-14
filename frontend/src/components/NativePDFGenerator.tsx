@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
 });
 
 // Componente para el contenido del PDF
-const InvoicePDF = ({ invoice, settings }: { invoice: Invoice; settings: Settings }) => {
+export const InvoicePDF = ({ invoice, settings }: { invoice: Invoice; settings: Settings }) => {
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
   
