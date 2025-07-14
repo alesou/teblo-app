@@ -19,7 +19,7 @@ const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({ invoice, settin
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(contentRef.current, {
-        scale: 1.5, // Compromiso entre calidad y peso
+        scale: 2,
         useCORS: false,
         allowTaint: false,
         backgroundColor: '#ffffff',
@@ -60,7 +60,7 @@ const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({ invoice, settin
         Descargar PDF
       </button>
 
-      <div ref={contentRef} className="bg-white p-4 shadow-lg" style={{ width: '210mm', margin: '0 auto' }}>
+      <div ref={contentRef} className="bg-white p-8 shadow-lg" style={{ width: '210mm', margin: '0 auto' }}>
         {/* Encabezado */}
         <div className="flex justify-between mb-8">
           <div>
