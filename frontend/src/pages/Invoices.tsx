@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { settingsApi, invoicesApi, clientsApi } from '../services/api';
-import SimplePDFGenerator from '../components/SimplePDFGenerator';
-import MultiPDFGenerator from '../components/MultiPDFGenerator';
+import NativePDFGenerator from '../components/NativePDFGenerator';
+import NativeMultiPDFGenerator from '../components/NativeMultiPDFGenerator';
 import type { Settings, Invoice } from '../types';
 
 interface InvoiceWithExtras extends Invoice {
@@ -313,7 +313,7 @@ const Invoices: React.FC = () => {
               Cerrar previsualización
             </button>
           </div>
-          <SimplePDFGenerator
+          <NativePDFGenerator
             invoice={selectedInvoice}
             settings={settings}
           />
@@ -474,7 +474,7 @@ const Invoices: React.FC = () => {
 
       {/* Modal para exportar múltiples facturas */}
       {exportMultiple && settings && (
-        <MultiPDFGenerator
+        <NativeMultiPDFGenerator
           invoices={invoicesToExport}
           settings={settings}
           onClose={() => setExportMultiple(false)}
