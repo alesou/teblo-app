@@ -36,6 +36,7 @@ const Invoices: React.FC = () => {
   const [search, setSearch] = useState('');
   const [searchDate, setSearchDate] = useState('');
   const [searchTotal, setSearchTotal] = useState('');
+  const [searchStatus, setSearchStatus] = useState('');
   // Estado para controlar la exportación múltiple
   const [exportMultiple, setExportMultiple] = useState(false);
   const [invoicesToExport, setInvoicesToExport] = useState<InvoiceWithExtras[]>([]);
@@ -121,6 +122,18 @@ const Invoices: React.FC = () => {
     }
   };
 
+  const handleCancel = async (invoice: InvoiceWithExtras) => {
+    if (!confirm('¿Seguro que quieres anular esta factura?')) return;
+    try {
+      await invoicesApi.update(invoice.id, {
+        ...invoice,
+        status: 'CANCELLED',
+      });
+      fetchInvoices();
+    } catch (err) {
+      alert('Error al anular la factura');
+    }
+  };
 
 
   // Nueva función para mostrar la previsualización en la página
@@ -188,6 +201,7 @@ const Invoices: React.FC = () => {
       if (search) params.append('q', search);
       if (searchDate) params.append('date', searchDate);
       if (searchTotal) params.append('total', searchTotal);
+      if (searchStatus) params.append('status', searchStatus);
       
       const response = await fetch(`https://api.teblo.app/api/invoices/search?${params.toString()}`);
       const searchResults = await response.json();
@@ -232,21 +246,63 @@ const Invoices: React.FC = () => {
       )}
 
       {/* Barra de búsqueda avanzada */}
-      <form onSubmit={handleSearch} className="flex gap-2 mb-4 items-end">
+      <form onSubmit={handleSearch} className="flex flex-wrap gap-4 items-center mb-6">
         <div>
-          <label className="block text-xs font-medium">Cliente o número</label>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} className="border rounded px-2 py-1" placeholder="Buscar..." />
+          <label className="block text-sm font-medium">Cliente o número</label>
+          <input
+            type="text"
+            placeholder="Buscar..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="border rounded px-4 py-2 w-64"
+          />
         </div>
         <div>
-          <label className="block text-xs font-medium">Fecha</label>
-          <input type="date" value={searchDate} onChange={e => setSearchDate(e.target.value)} className="border rounded px-2 py-1" />
+          <label className="block text-sm font-medium">Fecha</label>
+          <input
+            type="date"
+            value={searchDate}
+            onChange={e => setSearchDate(e.target.value)}
+            className="border rounded px-4 py-2 w-48"
+          />
         </div>
         <div>
-          <label className="block text-xs font-medium">Total</label>
-          <input type="number" step="0.01" value={searchTotal} onChange={e => setSearchTotal(e.target.value)} className="border rounded px-2 py-1" placeholder="€" />
+          <label className="block text-sm font-medium">Total</label>
+          <input
+            type="text"
+            placeholder="€"
+            value={searchTotal}
+            onChange={e => setSearchTotal(e.target.value)}
+            className="border rounded px-4 py-2 w-32"
+          />
         </div>
-        <button type="submit" className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600">Buscar</button>
-        <button type="button" onClick={() => { setSearch(''); setSearchDate(''); setSearchTotal(''); fetchInvoices(); }} className="bg-gray-300 text-gray-800 px-3 py-2 rounded hover:bg-gray-400">Limpiar</button>
+        <div>
+          <label className="block text-sm font-medium">Estado</label>
+          <select
+            value={searchStatus}
+            onChange={e => setSearchStatus(e.target.value)}
+            className="border rounded px-4 py-2 w-40"
+          >
+            <option value="">Todos</option>
+            <option value="PAID">Pagada</option>
+            <option value="PENDING">Pendiente</option>
+            <option value="CANCELLED">Cancelada</option>
+          </select>
+        </div>
+        <button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded text-lg">Buscar</button>
+        <button
+          type="button"
+          className="bg-gray-300 text-gray-800 px-6 py-2 rounded text-lg"
+          onClick={() => {
+            setSearch('');
+            setSearchDate('');
+            setSearchTotal('');
+            setSearchStatus('');
+            fetchInvoices();
+          }}
+        >
+          Limpiar
+        </button>
       </form>
 
       <div className="overflow-x-auto">
@@ -292,9 +348,11 @@ const Invoices: React.FC = () => {
                 </td>
                 <td className="border px-4 py-2">€{invoice.total.toFixed(2)}</td>
                 <td className="border px-4 py-2 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => handleEdit(invoice)} className="bg-yellow-400 text-white px-2 py-1 rounded text-xs">Editar</button>
                   <button onClick={() => handleDelete(invoice.id)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
                   <button onClick={() => openPaidModal(invoice)} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
+                  {invoice.status !== 'CANCELLED' && (
+                    <button onClick={() => handleCancel(invoice)} className="bg-gray-400 text-white px-2 py-1 rounded text-xs">Anular</button>
+                  )}
                 </td>
               </tr>
             ))}
