@@ -74,10 +74,10 @@ const Invoices: React.FC = () => {
 
   // Eliminar handleSubmit, form, formError, setForm, initialForm, showModal y toda la lógica asociada
 
-  const handleEdit = (invoice: InvoiceWithExtras) => {
-    setEditingInvoice(invoice);
-    // Eliminar referencias a form, setForm, setFormError, initialForm, formError
-  };
+  // const handleEdit = (invoice: InvoiceWithExtras) => {
+  //   setEditingInvoice(invoice);
+  //   // Eliminar referencias a form, setForm, setFormError, initialForm, formError
+  // };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
