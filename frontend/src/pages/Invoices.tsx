@@ -18,12 +18,8 @@ const Invoices: React.FC = () => {
   const [invoices, setInvoices] = useState<InvoiceWithExtras[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceWithExtras | null>(null);
-  const [editingInvoice, setEditingInvoice] = useState<InvoiceWithExtras | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const navigate = useNavigate();
@@ -79,8 +75,6 @@ const Invoices: React.FC = () => {
 
     try {
       await invoicesApi.delete(id);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
       fetchInvoices();
     } catch (err: any) {
       setError("Error al eliminar la factura");
@@ -190,12 +184,6 @@ const Invoices: React.FC = () => {
           )}
         </div>
       </div>
-
-      {success && (
-        <div className="mb-4 p-2 bg-green-100 text-green-700 rounded">
-          Operación completada con éxito
-        </div>
-      )}
 
       {/* Barra de búsqueda avanzada */}
       <form onSubmit={handleSearch} className="flex gap-2 mb-4 items-end">
