@@ -305,6 +305,22 @@ const Invoices: React.FC = () => {
         </button>
       </form>
 
+      {/* Botón de descarga múltiple */}
+      {selectedIds.length > 0 && (
+        <div className="mb-4">
+          <button
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors"
+            onClick={() => {
+              const selected = invoices.filter(inv => selectedIds.includes(inv.id));
+              setInvoicesToExport(selected);
+              setExportMultiple(true);
+            }}
+          >
+            Descargar seleccionadas
+          </button>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <p className="text-sm text-gray-600 mb-2">Haz clic en cualquier factura para ver la previsualización y generar el PDF</p>
         <table className="min-w-full bg-white border border-gray-300">
