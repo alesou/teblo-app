@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import multer from 'multer';
 import path from 'path';
+import admin from '../config/firebase';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -21,7 +22,6 @@ const authenticate = async (req: AuthenticatedRequest, res: Response, next: Func
     const token = authHeader.substring(7);
     
     // Verificar el token con Firebase Admin
-    const admin = require('firebase-admin');
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.userId = decodedToken.uid;
     next();

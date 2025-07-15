@@ -5,6 +5,7 @@ import clientsRouter from "./routes/clients";
 import invoicesRouter from "./routes/invoices";
 import settingsRouter from "./routes/settings";
 import migrationRouter from "./routes/migration";
+import './config/firebase'; // Initialize Firebase Admin
 
 import path from 'path';
 
