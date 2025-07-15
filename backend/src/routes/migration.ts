@@ -126,6 +126,24 @@ router.get('/check-schema', async (req, res) => {
   }
 });
 
+// Endpoint para regenerar el cliente de Prisma
+router.post('/regenerate-prisma', async (req: Request, res: Response) => {
+  try {
+    console.log('Regenerating Prisma client...');
+    
+    // Ejecutar la regeneración del cliente de Prisma
+    const { execSync } = require('child_process');
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    
+    console.log('Prisma client regenerated successfully');
+    res.json({ message: 'Prisma client regenerated successfully' });
+    
+  } catch (error) {
+    console.error('Prisma regeneration error:', error);
+    res.status(500).json({ error: 'Prisma regeneration failed', details: error });
+  }
+});
+
 // Endpoint para migrar la tabla settings
 router.post('/migrate-settings', async (req: Request, res: Response) => {
   try {
