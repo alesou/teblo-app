@@ -54,30 +54,6 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Initialize default settings
-async function initializeSettings() {
-  try {
-    const existingSettings = await prisma.settings.findFirst();
-    if (!existingSettings) {
-      await prisma.settings.create({
-        data: {
-          companyName: "Mi Empresa",
-          companyNif: "B12345678",
-          companyAddress: "Calle Principal 123, Madrid",
-          logoUrl: "",
-          invoicePrefix: "FAC",
-          nextNumber: 1
-        }
-      });
-      console.log("Default settings created");
-    }
-  } catch (error) {
-    console.error("Error creating default settings:", error);
-  }
-}
-
-
-
 // Start server
 async function startServer() {
   try {
@@ -97,8 +73,6 @@ async function startServer() {
     
     await Promise.race([connectPromise, timeoutPromise]);
     console.log("Database connected successfully");
-    
-    await initializeSettings();
     
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
