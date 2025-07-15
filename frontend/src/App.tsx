@@ -8,7 +8,7 @@ import Settings from './pages/Settings';
 import CreateInvoice from './pages/CreateInvoice';
 import Welcome from './pages/Welcome';
 import Onboarding from './pages/Onboarding';
-import { onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './firebase';
 import { useOnboarding } from './hooks/useOnboarding';
 
