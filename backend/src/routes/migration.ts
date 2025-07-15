@@ -9,41 +9,35 @@ router.post('/apply-schema', async (req, res) => {
   try {
     console.log('Starting schema migration...');
     
-    // This will apply the current schema to the database
-    // Note: This is a simplified approach - in production you'd use proper migrations
-    const result = await prisma.$executeRaw`
-      -- Add userId column to clients table if it doesn't exist
-      DO $$ 
-      BEGIN 
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns 
-          WHERE table_name = 'clients' AND column_name = 'userid'
-        ) THEN
-          ALTER TABLE clients ADD COLUMN userid TEXT;
-        END IF;
-      END $$;
-    `;
+    // Add userId column to clients table
+    try {
+      await prisma.$executeRaw`ALTER TABLE clients ADD COLUMN "userId" TEXT`;
+      console.log('Added userId column to clients table');
+    } catch (error: any) {
+      if (error.message.includes('already exists')) {
+        console.log('userId column already exists in clients table');
+      } else {
+        throw error;
+      }
+    }
     
-    const result2 = await prisma.$executeRaw`
-      -- Add userId column to invoices table if it doesn't exist
-      DO $$ 
-      BEGIN 
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns 
-          WHERE table_name = 'invoices' AND column_name = 'userid'
-        ) THEN
-          ALTER TABLE invoices ADD COLUMN userid TEXT;
-        END IF;
-      END $$;
-    `;
+    // Add userId column to invoices table
+    try {
+      await prisma.$executeRaw`ALTER TABLE invoices ADD COLUMN "userId" TEXT`;
+      console.log('Added userId column to invoices table');
+    } catch (error: any) {
+      if (error.message.includes('already exists')) {
+        console.log('userId column already exists in invoices table');
+      } else {
+        throw error;
+      }
+    }
     
     console.log('Schema migration completed');
     
     res.json({
       success: true,
-      message: 'Schema migration completed',
-      clientsUpdated: result,
-      invoicesUpdated: result2
+      message: 'Schema migration completed successfully'
     });
     
   } catch (error) {
