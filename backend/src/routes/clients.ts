@@ -1,13 +1,15 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { authenticate, AuthenticatedRequest } from '../authMiddleware';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
 // Get all clients
-router.get('/', async (req, res) => {
+router.get('/', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const clients = await prisma.client.findMany({
+      where: { userId: req.userId },
       orderBy: { name: 'asc' }
     });
     res.json(clients);
@@ -17,11 +19,14 @@ router.get('/', async (req, res) => {
 });
 
 // Get client by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-    const client = await prisma.client.findUnique({
-      where: { id },
+    const client = await prisma.client.findFirst({
+      where: { 
+        id,
+        userId: req.userId 
+      },
       include: {
         invoices: {
           orderBy: { date: 'desc' }
@@ -40,7 +45,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new client
-router.post('/', async (req, res) => {
+router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { name, nif, address, email, phone } = req.body;
     
@@ -54,7 +59,8 @@ router.post('/', async (req, res) => {
         nif,
         address,
         email,
-        phone
+        phone,
+        userId: req.userId!
       }
     });
     
@@ -65,13 +71,25 @@ router.post('/', async (req, res) => {
 });
 
 // Update client
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     const { name, nif, address, email, phone } = req.body;
     
     if (!name) {
       return res.status(400).json({ error: 'Name is required' });
+    }
+    
+    // Verify client belongs to user
+    const existingClient = await prisma.client.findFirst({
+      where: { 
+        id,
+        userId: req.userId 
+      }
+    });
+    
+    if (!existingClient) {
+      return res.status(404).json({ error: 'Client not found' });
     }
     
     const client = await prisma.client.update({
@@ -92,9 +110,21 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete client
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
+    
+    // Verify client belongs to user
+    const existingClient = await prisma.client.findFirst({
+      where: { 
+        id,
+        userId: req.userId 
+      }
+    });
+    
+    if (!existingClient) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
     
     // Check if client has invoices
     const invoices = await prisma.invoice.findMany({

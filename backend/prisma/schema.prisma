@@ -14,6 +14,7 @@ model Client {
   address   String?
   email     String?
   phone     String?
+  userId    String   // ID del usuario propietario (Firebase UID)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   invoices  Invoice[]

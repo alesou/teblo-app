@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 import {
   Client,
   Invoice,
@@ -26,6 +27,23 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true,
+});
+
+// Add auth token to requests
+api.interceptors.request.use(async (config) => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  
+  if (user) {
+    try {
+      const token = await user.getIdToken();
+      config.headers.Authorization = `Bearer ${token}`;
+    } catch (error) {
+      console.error('Error getting auth token:', error);
+    }
+  }
+  
+  return config;
 });
 
 // Clients API
