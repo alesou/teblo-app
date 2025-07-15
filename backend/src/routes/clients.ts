@@ -8,12 +8,17 @@ const prisma = new PrismaClient();
 // Get all clients
 router.get('/', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    console.log('Fetching clients for userId:', req.userId);
+    
     const clients = await prisma.client.findMany({
       where: { userId: req.userId },
       orderBy: { name: 'asc' }
     });
+    
+    console.log(`Found ${clients.length} clients for user ${req.userId}`);
     res.json(clients);
   } catch (error) {
+    console.error('Error fetching clients:', error);
     res.status(500).json({ error: 'Error fetching clients' });
   }
 });

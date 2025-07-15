@@ -40,6 +40,8 @@ router.get('/search', authenticate, async (req: AuthenticatedRequest, res) => {
 // Get all invoices (con filtro por clientId opcional)
 router.get('/', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    console.log('Fetching invoices for userId:', req.userId);
+    
     if (!req.userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -54,8 +56,11 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res) => {
       },
       orderBy: { date: 'desc' }
     });
+    
+    console.log(`Found ${invoices.length} invoices for user ${req.userId}`);
     res.json(invoices);
   } catch (error) {
+    console.error('Error fetching invoices:', error);
     res.status(500).json({ error: 'Error fetching invoices' });
   }
 });
