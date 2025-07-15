@@ -78,4 +78,47 @@ router.post('/clean-data', async (req, res) => {
   }
 });
 
+// Diagnostic endpoint to check database schema
+router.get('/check-schema', async (req, res) => {
+  try {
+    console.log('Checking database schema...');
+    
+    // Check if userId column exists in clients table
+    const clientsResult = await prisma.$queryRaw`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'clients' AND column_name = 'userId'
+    `;
+    
+    // Check if userId column exists in invoices table
+    const invoicesResult = await prisma.$queryRaw`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'invoices' AND column_name = 'userId'
+    `;
+    
+    console.log('Clients columns:', clientsResult);
+    console.log('Invoices columns:', invoicesResult);
+    
+    res.json({
+      success: true,
+      clients: {
+        hasUserId: Array.isArray(clientsResult) && clientsResult.length > 0,
+        columns: clientsResult
+      },
+      invoices: {
+        hasUserId: Array.isArray(invoicesResult) && invoicesResult.length > 0,
+        columns: invoicesResult
+      }
+    });
+    
+  } catch (error) {
+    console.error('Schema check error:', error);
+    res.status(500).json({ 
+      error: 'Schema check failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router; 
