@@ -321,60 +321,78 @@ const Invoices: React.FC = () => {
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <p className="text-sm text-gray-600 mb-2">Haz clic en cualquier factura para ver la previsualización y generar el PDF</p>
-        <table className="min-w-full bg-white border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border px-4 py-2">
-                <input type="checkbox" checked={selectedIds.length === invoices.length && invoices.length > 0} onChange={e => setSelectedIds(e.target.checked ? invoices.map(i => i.id) : [])} />
-              </th>
-              <th className="border px-4 py-2">Número</th>
-              <th className="border px-4 py-2">Cliente</th>
-              <th className="border px-4 py-2">Fecha</th>
-              <th className="border px-4 py-2">Estado</th>
-              <th className="border px-4 py-2">Total</th>
-              <th className="border px-4 py-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((invoice) => (
-              <tr key={invoice.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleShowPreview(invoice)}>
-                <td className="border px-4 py-2" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(invoice.id)}
-                    onChange={e => {
-                      e.stopPropagation();
-                      setSelectedIds(ids => e.target.checked ? [...ids, invoice.id] : ids.filter(id => id !== invoice.id));
-                    }}
-                  />
-                </td>
-                <td className="border px-4 py-2">{invoice.number}</td>
-                <td className="border px-4 py-2">{invoice.client?.name || "Sin cliente"}</td>
-                <td className="border px-4 py-2">{new Date(invoice.date).toLocaleDateString()}</td>
-                <td className="border px-4 py-2">
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    invoice.status === "PAID" ? "bg-green-100 text-green-800" :
-                    invoice.status === "CANCELLED" ? "bg-red-100 text-red-800" :
-                    "bg-yellow-100 text-yellow-800"
-                  }`}>
-                    {invoice.status}
-                  </span>
-                </td>
-                <td className="border px-4 py-2">€{invoice.total.toFixed(2)}</td>
-                <td className="border px-4 py-2 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => handleDelete(invoice.id)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
-                  <button onClick={() => openPaidModal(invoice)} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
-                  {invoice.status !== 'CANCELLED' && (
-                    <button onClick={() => handleCancel(invoice)} className="bg-gray-400 text-white px-2 py-1 rounded text-xs">Anular</button>
-                  )}
-                </td>
+      {invoices.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-500 text-lg mb-4">
+            <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="text-xl font-medium text-gray-900 mb-2">Vaya, parece que todavía no tienes facturas</p>
+            <p className="text-gray-600">Comienza creando tu primera factura para gestionar tus ventas.</p>
+          </div>
+          <button
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => navigate("/invoices/new")}
+          >
+            + Crear mi primera factura
+          </button>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <p className="text-sm text-gray-600 mb-2">Haz clic en cualquier factura para ver la previsualización y generar el PDF</p>
+          <table className="min-w-full bg-white border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border px-4 py-2">
+                  <input type="checkbox" checked={selectedIds.length === invoices.length && invoices.length > 0} onChange={e => setSelectedIds(e.target.checked ? invoices.map(i => i.id) : [])} />
+                </th>
+                <th className="border px-4 py-2">Número</th>
+                <th className="border px-4 py-2">Cliente</th>
+                <th className="border px-4 py-2">Fecha</th>
+                <th className="border px-4 py-2">Estado</th>
+                <th className="border px-4 py-2">Total</th>
+                <th className="border px-4 py-2">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {invoices.map((invoice) => (
+                <tr key={invoice.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleShowPreview(invoice)}>
+                  <td className="border px-4 py-2" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(invoice.id)}
+                      onChange={e => {
+                        e.stopPropagation();
+                        setSelectedIds(ids => e.target.checked ? [...ids, invoice.id] : ids.filter(id => id !== invoice.id));
+                      }}
+                    />
+                  </td>
+                  <td className="border px-4 py-2">{invoice.number}</td>
+                  <td className="border px-4 py-2">{invoice.client?.name || "Sin cliente"}</td>
+                  <td className="border px-4 py-2">{new Date(invoice.date).toLocaleDateString()}</td>
+                  <td className="border px-4 py-2">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      invoice.status === "PAID" ? "bg-green-100 text-green-800" :
+                      invoice.status === "CANCELLED" ? "bg-red-100 text-red-800" :
+                      "bg-yellow-100 text-yellow-800"
+                    }`}>
+                      {invoice.status}
+                    </span>
+                  </td>
+                  <td className="border px-4 py-2">€{invoice.total.toFixed(2)}</td>
+                  <td className="border px-4 py-2 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => handleDelete(invoice.id)} className="bg-red-500 text-white px-2 py-1 rounded text-xs">Eliminar</button>
+                    <button onClick={() => openPaidModal(invoice)} className="bg-green-500 text-white px-2 py-1 rounded text-xs">Marcar pagada</button>
+                    {invoice.status !== 'CANCELLED' && (
+                      <button onClick={() => handleCancel(invoice)} className="bg-gray-400 text-white px-2 py-1 rounded text-xs">Anular</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Previsualización en la página principal */}
       {showPreview && selectedInvoice && settings && selectedInvoice.client && selectedInvoice.items && (
