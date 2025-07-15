@@ -4,67 +4,30 @@ import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Migration endpoint to assign userId to existing data
-router.post('/migrate-data', async (req, res) => {
+// Clean data endpoint to remove all existing data
+router.post('/clean-data', async (req, res) => {
   try {
-    console.log('Starting data migration...');
+    console.log('Starting data cleanup...');
     
-    // Get a temporary userId (you can replace this with a real user ID)
-    const tempUserId = 'temp-user-id';
+    // Delete all existing invoices (this will cascade to invoice items and payments)
+    const deletedInvoices = await prisma.invoice.deleteMany({});
+    console.log(`Deleted ${deletedInvoices.count} invoices`);
     
-    // Update existing clients without userId
-    const clientsToUpdate = await prisma.client.findMany({
-      where: {
-        OR: [
-          { userId: '' },
-          { userId: null as any }
-        ]
-      }
-    });
-    
-    let clientsUpdated = 0;
-    for (const client of clientsToUpdate) {
-      await prisma.client.update({
-        where: { id: client.id },
-        data: { userId: tempUserId }
-      });
-      clientsUpdated++;
-    }
-    
-    console.log(`Updated ${clientsUpdated} clients`);
-    
-    // Update existing invoices without userId
-    const invoicesToUpdate = await prisma.invoice.findMany({
-      where: {
-        OR: [
-          { userId: '' },
-          { userId: null as any }
-        ]
-      }
-    });
-    
-    let invoicesUpdated = 0;
-    for (const invoice of invoicesToUpdate) {
-      await prisma.invoice.update({
-        where: { id: invoice.id },
-        data: { userId: tempUserId }
-      });
-      invoicesUpdated++;
-    }
-    
-    console.log(`Updated ${invoicesUpdated} invoices`);
+    // Delete all existing clients
+    const deletedClients = await prisma.client.deleteMany({});
+    console.log(`Deleted ${deletedClients.count} clients`);
     
     res.json({
       success: true,
-      message: 'Migration completed',
-      clientsUpdated: clientsUpdated,
-      invoicesUpdated: invoicesUpdated
+      message: 'Data cleanup completed',
+      invoicesDeleted: deletedInvoices.count,
+      clientsDeleted: deletedClients.count
     });
     
   } catch (error) {
-    console.error('Migration error:', error);
+    console.error('Cleanup error:', error);
     res.status(500).json({ 
-      error: 'Migration failed',
+      error: 'Cleanup failed',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
