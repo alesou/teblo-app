@@ -33,6 +33,11 @@ router.post('/apply-schema', async (req, res) => {
       }
     }
     
+    // Force Prisma client regeneration
+    console.log('Regenerating Prisma client...');
+    const { execSync } = require('child_process');
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    
     console.log('Schema migration completed');
     
     res.json({
