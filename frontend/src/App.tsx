@@ -7,8 +7,10 @@ import Invoices from './pages/Invoices';
 import Settings from './pages/Settings';
 import CreateInvoice from './pages/CreateInvoice';
 import Welcome from './pages/Welcome';
+import Onboarding from './pages/Onboarding';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './firebase';
+import { useOnboarding } from './hooks/useOnboarding';
 
 // Auth context
 export const AuthContext = createContext<{ user: User | null }>({ user: null });
@@ -17,6 +19,7 @@ export const useAuth = () => useContext(AuthContext);
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { needsOnboarding, loading: onboardingLoading } = useOnboarding();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
@@ -26,8 +29,13 @@ function App() {
     return () => unsub();
   }, []);
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading || onboardingLoading) return <div>Cargando...</div>;
   if (!user) return <Welcome />;
+
+  // Si el usuario necesita onboarding, mostrar la página de onboarding
+  if (needsOnboarding) {
+    return <Onboarding />;
+  }
 
   return (
     <AuthContext.Provider value={{ user }}>
