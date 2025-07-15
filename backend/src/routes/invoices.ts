@@ -8,6 +8,9 @@ const prisma = new PrismaClient();
 // Buscar facturas por nombre, total o fecha
 router.get('/search', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { q, date, total } = req.query;
     const where: any = { userId: req.userId };
     if (q) {
@@ -37,6 +40,9 @@ router.get('/search', authenticate, async (req: AuthenticatedRequest, res) => {
 // Get all invoices (con filtro por clientId opcional)
 router.get('/', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { clientId } = req.query;
     const where: any = { userId: req.userId };
     if (clientId) where.clientId = clientId;
@@ -57,6 +63,9 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res) => {
 // Get invoice by ID
 router.get('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { id } = req.params;
     const invoice = await prisma.invoice.findUnique({
       where: { id },
@@ -77,6 +86,9 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
 // Create new invoice
 router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { clientId, date, dueDate, items, notes, terms, amountPaid, paidAt, status } = req.body;
     if (!clientId || !items || items.length === 0) {
       return res.status(400).json({ error: 'Client and items are required' });
@@ -135,6 +147,9 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
 // Update invoice
 router.put('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { id } = req.params;
     const { date, dueDate, status, notes, items, total, amountPaid, paidAt } = req.body;
     // Verificar propiedad
@@ -186,6 +201,9 @@ router.put('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
 // Update invoice status
 router.patch('/:id/status', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { id } = req.params;
     const { status } = req.body;
     // Verificar propiedad
@@ -210,6 +228,9 @@ router.patch('/:id/status', authenticate, async (req: AuthenticatedRequest, res)
 // Delete invoice
 router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { id } = req.params;
     // Verificar propiedad
     const invoice = await prisma.invoice.findUnique({ where: { id } });
@@ -228,6 +249,9 @@ router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
 // Añadir pago a una factura
 router.post('/:id/payments', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { id } = req.params;
     // Verificar propiedad
     const invoice = await prisma.invoice.findUnique({ where: { id } });
@@ -253,6 +277,9 @@ router.post('/:id/payments', authenticate, async (req: AuthenticatedRequest, res
 // Obtener historial de pagos de una factura
 router.get('/:id/payments', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { id } = req.params;
     // Verificar propiedad
     const invoice = await prisma.invoice.findUnique({ where: { id } });
