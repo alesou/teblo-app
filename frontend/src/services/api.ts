@@ -34,13 +34,19 @@ api.interceptors.request.use(async (config) => {
   const auth = getAuth();
   const user = auth.currentUser;
   
+  console.log('Request interceptor called for:', config.url);
+  console.log('Current user:', user ? user.uid : 'No user');
+  
   if (user) {
     try {
       const token = await user.getIdToken();
+      console.log('Token obtained, length:', token.length);
       config.headers.Authorization = `Bearer ${token}`;
     } catch (error) {
       console.error('Error getting auth token:', error);
     }
+  } else {
+    console.log('No authenticated user found');
   }
   
   return config;
