@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import clientsRouter from "./routes/clients";
 import invoicesRouter from "./routes/invoices";
 import settingsRouter from "./routes/settings";
+import migrationRouter from "./routes/migration";
 
 import path from 'path';
 
@@ -44,6 +45,7 @@ app.get('/', (req, res) => {
 app.use("/api/clients", clientsRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/invoices", invoicesRouter);
+app.use("/api/migration", migrationRouter);
 
 // app.use('/api/auth', authHandler);
 
