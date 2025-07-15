@@ -36,14 +36,34 @@ api.interceptors.request.use(async (config) => {
   
   console.log('Request interceptor called for:', config.url);
   console.log('Current user:', user ? user.uid : 'No user');
+  console.log('User email:', user?.email);
+  console.log('User emailVerified:', user?.emailVerified);
   
-  if (user) {
+  if (user && user.uid) {
     try {
-      const token = await user.getIdToken();
+      // Force token refresh to ensure we get a fresh token
+      const token = await user.getIdToken(true);
       console.log('Token obtained, length:', token.length);
-      config.headers.Authorization = `Bearer ${token}`;
+      console.log('Token preview:', token.substring(0, 50) + '...');
+      
+      if (token && token.length > 100) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('Authorization header set successfully');
+      } else {
+        console.error('Token too short or invalid:', token);
+      }
     } catch (error) {
       console.error('Error getting auth token:', error);
+      // If token refresh fails, try to get the current token
+      try {
+        const currentToken = await user.getIdToken();
+        if (currentToken && currentToken.length > 100) {
+          config.headers.Authorization = `Bearer ${currentToken}`;
+          console.log('Fallback token set successfully');
+        }
+      } catch (fallbackError) {
+        console.error('Fallback token error:', fallbackError);
+      }
     }
   } else {
     console.log('No authenticated user found');
