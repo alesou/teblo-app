@@ -11,9 +11,16 @@ export const useOnboarding = () => {
         setLoading(true);
         const settings = await settingsApi.get();
         
-        // Si no hay configuración o el nombre de la empresa está vacío, necesita onboarding
-        const needsSetup = !settings || !settings.companyName || settings.companyName.trim() === '';
-        setNeedsOnboarding(needsSetup);
+        // Verificar si faltan los campos obligatorios: nombre, CIF y dirección
+        const hasRequiredFields = settings && 
+          settings.companyName && 
+          settings.companyName.trim() !== '' &&
+          settings.companyNif && 
+          settings.companyNif.trim() !== '' &&
+          settings.companyAddress && 
+          settings.companyAddress.trim() !== '';
+        
+        setNeedsOnboarding(!hasRequiredFields);
       } catch (error) {
         // Si hay error al obtener settings, asumimos que necesita onboarding
         setNeedsOnboarding(true);

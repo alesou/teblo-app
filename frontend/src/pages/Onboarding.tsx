@@ -37,6 +37,14 @@ const Onboarding: React.FC = () => {
       setError("El nombre de la empresa es obligatorio");
       return;
     }
+    if (!settings.companyNif?.trim()) {
+      setError("El CIF/NIF es obligatorio");
+      return;
+    }
+    if (!settings.companyAddress?.trim()) {
+      setError("La dirección es obligatoria");
+      return;
+    }
     
     setSaving(true);
     setError(null);
@@ -53,9 +61,19 @@ const Onboarding: React.FC = () => {
   };
 
   const nextStep = () => {
-    if (currentStep === 1 && !settings.companyName.trim()) {
-      setError("El nombre de la empresa es obligatorio");
-      return;
+    if (currentStep === 1) {
+      if (!settings.companyName.trim()) {
+        setError("El nombre de la empresa es obligatorio");
+        return;
+      }
+      if (!settings.companyNif?.trim()) {
+        setError("El CIF/NIF es obligatorio");
+        return;
+      }
+      if (!settings.companyAddress?.trim()) {
+        setError("La dirección es obligatoria");
+        return;
+      }
     }
     setError(null);
     setCurrentStep(currentStep + 1);
@@ -76,48 +94,88 @@ const Onboarding: React.FC = () => {
         </p>
         <div className="bg-blue-50 p-6 rounded-lg">
           <h2 className="text-xl font-semibold text-blue-900 mb-3">
-            ¿Qué necesitamos?
+            Información obligatoria
           </h2>
           <ul className="text-left text-blue-800 space-y-2">
             <li className="flex items-center">
               <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</span>
-              Nombre de tu empresa
+              Nombre de la empresa *
             </li>
             <li className="flex items-center">
               <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</span>
-              Información de contacto (opcional)
+              CIF/NIF *
             </li>
             <li className="flex items-center">
               <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</span>
+              Dirección *
+            </li>
+            <li className="flex items-center">
+              <span className="w-6 h-6 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</span>
+              Información adicional (opcional)
+            </li>
+            <li className="flex items-center">
+              <span className="w-6 h-6 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">5</span>
               Configuración de facturas
             </li>
           </ul>
         </div>
       </div>
       
-      <div className="mb-6">
-        <label className="block text-lg font-medium text-gray-900 mb-2">
-          ¿Cuál es el nombre de tu empresa? *
-        </label>
-        <input
-          type="text"
-          name="companyName"
-          value={settings.companyName}
-          onChange={handleInput}
-          className="w-full max-w-md border-2 border-gray-300 px-4 py-3 rounded-lg text-lg focus:border-blue-500 focus:outline-none"
-          placeholder="Ej: Mi Empresa S.L."
-          required
-        />
+      <div className="max-w-md mx-auto space-y-4">
+        <div>
+          <label className="block text-lg font-medium text-gray-900 mb-2">
+            Nombre de la empresa *
+          </label>
+          <input
+            type="text"
+            name="companyName"
+            value={settings.companyName}
+            onChange={handleInput}
+            className="w-full border-2 border-gray-300 px-4 py-3 rounded-lg text-lg focus:border-blue-500 focus:outline-none"
+            placeholder="Ej: Mi Empresa S.L."
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-lg font-medium text-gray-900 mb-2">
+            CIF/NIF *
+          </label>
+          <input
+            type="text"
+            name="companyNif"
+            value={settings.companyNif || ""}
+            onChange={handleInput}
+            className="w-full border-2 border-gray-300 px-4 py-3 rounded-lg text-lg focus:border-blue-500 focus:outline-none"
+            placeholder="Ej: B12345678"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-lg font-medium text-gray-900 mb-2">
+            Dirección *
+          </label>
+          <input
+            type="text"
+            name="companyAddress"
+            value={settings.companyAddress || ""}
+            onChange={handleInput}
+            className="w-full border-2 border-gray-300 px-4 py-3 rounded-lg text-lg focus:border-blue-500 focus:outline-none"
+            placeholder="Ej: Calle Principal 123, Madrid"
+            required
+          />
+        </div>
       </div>
 
       {error && (
-        <div className="text-red-500 mb-4">{error}</div>
+        <div className="text-red-500 mb-4 mt-4">{error}</div>
       )}
 
       <button
         onClick={nextStep}
-        className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
-        disabled={!settings.companyName.trim()}
+        className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors mt-6"
+        disabled={!settings.companyName.trim() || !settings.companyNif?.trim() || !settings.companyAddress?.trim()}
       >
         Continuar
       </button>
@@ -128,7 +186,7 @@ const Onboarding: React.FC = () => {
     <div className="text-center">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Información de contacto
+          Información adicional
         </h1>
         <p className="text-lg text-gray-600 mb-6">
           Esta información aparecerá en tus facturas. Puedes completarla más tarde.
@@ -136,34 +194,6 @@ const Onboarding: React.FC = () => {
       </div>
       
       <div className="max-w-md mx-auto space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            NIF/CIF
-          </label>
-          <input
-            type="text"
-            name="companyNif"
-            value={settings.companyNif || ""}
-            onChange={handleInput}
-            className="w-full border-2 border-gray-300 px-3 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
-            placeholder="Ej: B12345678"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Dirección
-          </label>
-          <input
-            type="text"
-            name="companyAddress"
-            value={settings.companyAddress || ""}
-            onChange={handleInput}
-            className="w-full border-2 border-gray-300 px-3 py-2 rounded-lg focus:border-blue-500 focus:outline-none"
-            placeholder="Ej: Calle Principal 123, Madrid"
-          />
-        </div>
-        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Teléfono
