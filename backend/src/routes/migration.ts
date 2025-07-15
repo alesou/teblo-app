@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
@@ -123,6 +123,93 @@ router.get('/check-schema', async (req, res) => {
       error: 'Schema check failed',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
+  }
+});
+
+// Endpoint para migrar la tabla settings
+router.post('/migrate-settings', async (req: Request, res: Response) => {
+  try {
+    console.log('Starting settings migration...');
+    
+    // Verificar si la columna userId ya existe
+    const tableInfo = await prisma.$queryRaw`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'settings' AND column_name = 'userId'
+    `;
+    
+    if (Array.isArray(tableInfo) && tableInfo.length > 0) {
+      console.log('userId column already exists');
+      return res.json({ message: 'Settings table already migrated' });
+    }
+    
+    // Agregar la columna userId
+    await prisma.$executeRaw`ALTER TABLE settings ADD COLUMN "userId" TEXT`;
+    console.log('Added userId column');
+    
+    // Crear índice único en userId
+    await prisma.$executeRaw`CREATE UNIQUE INDEX "settings_userId_key" ON "settings"("userId")`;
+    console.log('Created unique index on userId');
+    
+    // Cambiar el ID por defecto de "settings" a UUID
+    await prisma.$executeRaw`ALTER TABLE settings ALTER COLUMN id SET DEFAULT gen_random_uuid()`;
+    console.log('Changed id default to UUID');
+    
+    // Actualizar el registro existente para que tenga un UUID válido
+    await prisma.$executeRaw`UPDATE settings SET id = gen_random_uuid() WHERE id = 'settings'`;
+    console.log('Updated existing settings record with UUID');
+    
+    console.log('Settings migration completed successfully');
+    res.json({ message: 'Settings migration completed successfully' });
+    
+  } catch (error) {
+    console.error('Migration error:', error);
+    res.status(500).json({ error: 'Migration failed', details: error });
+  }
+});
+
+// Endpoint para limpiar datos de settings (para testing)
+router.post('/clean-settings', async (req: Request, res: Response) => {
+  try {
+    console.log('Cleaning settings table...');
+    
+    // Eliminar todos los registros de settings
+    await prisma.settings.deleteMany({});
+    console.log('Cleaned settings table');
+    
+    res.json({ message: 'Settings table cleaned successfully' });
+    
+  } catch (error) {
+    console.error('Clean error:', error);
+    res.status(500).json({ error: 'Clean failed', details: error });
+  }
+});
+
+// Endpoint para verificar el estado de la tabla settings
+router.get('/check-settings', async (req: Request, res: Response) => {
+  try {
+    console.log('Checking settings table structure...');
+    
+    // Verificar estructura de la tabla
+    const columns = await prisma.$queryRaw`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns 
+      WHERE table_name = 'settings'
+      ORDER BY ordinal_position
+    `;
+    
+    // Verificar registros existentes
+    const settings = await prisma.settings.findMany();
+    
+    res.json({ 
+      columns: columns,
+      records: settings.length,
+      settings: settings
+    });
+    
+  } catch (error) {
+    console.error('Check error:', error);
+    res.status(500).json({ error: 'Check failed', details: error });
   }
 });
 

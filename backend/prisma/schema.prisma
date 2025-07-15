@@ -70,7 +70,8 @@ model Payment {
 }
 
 model Settings {
-  id            String @id @default("settings")
+  id            String @id @default(uuid())
+  userId        String // ID del usuario propietario (Firebase UID)
   companyName   String @default("Mi Empresa")
   companyNif    String?
   companyAddress String?
@@ -80,6 +81,7 @@ model Settings {
   companyPhone  String?
   companyWeb    String?
 
+  @@unique([userId])
   @@map("settings")
 }
 
