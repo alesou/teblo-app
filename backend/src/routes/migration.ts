@@ -231,4 +231,52 @@ router.get('/check-settings', async (req: Request, res: Response) => {
   }
 });
 
+// Endpoint para eliminar todos los datos de todos los usuarios (para testing desde cero)
+router.post('/reset-all-data', async (req: Request, res: Response) => {
+  try {
+    console.log('Starting complete data reset...');
+    
+    // Eliminar todos los pagos (cascade desde invoices)
+    const deletedPayments = await prisma.payment.deleteMany({});
+    console.log(`Deleted ${deletedPayments.count} payments`);
+    
+    // Eliminar todos los items de factura (cascade desde invoices)
+    const deletedInvoiceItems = await prisma.invoiceItem.deleteMany({});
+    console.log(`Deleted ${deletedInvoiceItems.count} invoice items`);
+    
+    // Eliminar todas las facturas
+    const deletedInvoices = await prisma.invoice.deleteMany({});
+    console.log(`Deleted ${deletedInvoices.count} invoices`);
+    
+    // Eliminar todos los clientes
+    const deletedClients = await prisma.client.deleteMany({});
+    console.log(`Deleted ${deletedClients.count} clients`);
+    
+    // Eliminar todas las configuraciones
+    const deletedSettings = await prisma.settings.deleteMany({});
+    console.log(`Deleted ${deletedSettings.count} settings`);
+    
+    console.log('Complete data reset finished');
+    
+    res.json({
+      success: true,
+      message: 'All data has been reset successfully',
+      summary: {
+        paymentsDeleted: deletedPayments.count,
+        invoiceItemsDeleted: deletedInvoiceItems.count,
+        invoicesDeleted: deletedInvoices.count,
+        clientsDeleted: deletedClients.count,
+        settingsDeleted: deletedSettings.count
+      }
+    });
+    
+  } catch (error) {
+    console.error('Reset error:', error);
+    res.status(500).json({ 
+      error: 'Data reset failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router; 
