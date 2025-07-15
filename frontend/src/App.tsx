@@ -8,7 +8,7 @@ import Settings from './pages/Settings';
 import CreateInvoice from './pages/CreateInvoice';
 import Welcome from './pages/Welcome';
 import Onboarding from './pages/Onboarding';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth } from './firebase';
 import { useOnboarding } from './hooks/useOnboarding';
 
@@ -19,21 +19,30 @@ export const useAuth = () => useContext(AuthContext);
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   const { needsOnboarding, loading: onboardingLoading } = useOnboarding();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
+      setAuthChecked(true);
     });
     return () => unsub();
   }, []);
 
-  if (loading || onboardingLoading) return <div>Cargando...</div>;
+  // Solo verificar onboarding después de que la autenticación esté completa
+  useEffect(() => {
+    if (!authChecked || !user) {
+      return;
+    }
+  }, [authChecked, user]);
+
+  if (loading) return <div>Cargando...</div>;
   if (!user) return <Welcome />;
 
-  // Si el usuario necesita onboarding, mostrar la página de onboarding
-  if (needsOnboarding) {
+  // Solo verificar onboarding si el usuario está autenticado
+  if (authChecked && user && needsOnboarding && !onboardingLoading) {
     return <Onboarding />;
   }
 

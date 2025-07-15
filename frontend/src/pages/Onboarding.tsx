@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { settingsApi } from "../services/api";
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 
 interface Settings {
   companyName: string;
@@ -54,7 +56,18 @@ const Onboarding: React.FC = () => {
       // Redirigir al dashboard después de completar el onboarding
       navigate('/');
     } catch (err: any) {
-      setError("Error al guardar la configuración");
+      console.error('Error saving settings:', err);
+      
+      // Si es un error 401, hacer logout y redirigir al login
+      if (err?.response?.status === 401) {
+        setError("Error de autenticación. Serás redirigido al login.");
+        setTimeout(async () => {
+          await signOut(auth);
+          navigate('/');
+        }, 2000);
+      } else {
+        setError("Error al guardar la configuración");
+      }
     } finally {
       setSaving(false);
     }
