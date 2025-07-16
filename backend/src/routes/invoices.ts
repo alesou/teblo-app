@@ -72,6 +72,8 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
     const { id } = req.params;
+    console.log(`Fetching invoice ${id} for userId: ${req.userId}`);
+    
     const invoice = await prisma.invoice.findUnique({
       where: { id },
       include: {
@@ -79,12 +81,22 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
         items: true
       }
     });
-    if (!invoice || invoice.userId !== req.userId) {
+    
+    if (!invoice) {
+      console.log(`Invoice ${id} not found`);
       return res.status(404).json({ error: 'Invoice not found' });
     }
+    
+    if (invoice.userId !== req.userId) {
+      console.log(`Invoice ${id} belongs to user ${invoice.userId}, but requested by ${req.userId}`);
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+    
+    console.log(`Successfully fetched invoice ${id}`);
     res.json(invoice);
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching invoice' });
+    console.error('Error fetching invoice:', error);
+    res.status(500).json({ error: 'Error fetching invoice', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -94,8 +106,12 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
     if (!req.userId) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
+    console.log('Creating invoice for userId:', req.userId);
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
     const { clientId, date, dueDate, items, notes, terms, amountPaid, paidAt, status } = req.body;
     if (!clientId || !items || items.length === 0) {
+      console.log('Missing required fields: clientId or items');
       return res.status(400).json({ error: 'Client and items are required' });
     }
     // Get next invoice number
@@ -160,6 +176,8 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
       where: { userId: req.userId },
       data: { nextNumber: settings.nextNumber + 1 }
     });
+    
+    console.log('Invoice created successfully:', invoice.id);
     res.status(201).json(invoice);
   } catch (error) {
     console.error('Error creating invoice:', error);
