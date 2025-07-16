@@ -47,6 +47,16 @@ function App() {
     onboardingLoading
   });
 
+  // Debug: Log when onboarding check should happen
+  if (authChecked && user && !onboardingLoading) {
+    console.log('🔍 Onboarding check conditions met:', {
+      authChecked,
+      userExists: !!user,
+      needsOnboarding,
+      onboardingLoading
+    });
+  }
+
   if (loading) return <div>Cargando...</div>;
   if (!user) return <Welcome />;
 

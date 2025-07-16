@@ -7,6 +7,8 @@ export const useOnboarding = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+  console.log('🔄 useOnboarding hook called with user:', user?.uid);
+
   useEffect(() => {
     const checkOnboarding = async () => {
       console.log('🔍 Checking onboarding for user:', user?.uid);
