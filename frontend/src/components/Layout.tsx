@@ -22,18 +22,38 @@ const Layout = ({ children }: LayoutProps) => {
 
   const handleDonation = async () => {
     try {
-      // Aquí puedes cambiar la URL de tu Stripe Checkout
+      console.log('Donation button clicked');
+      console.log('Stripe key:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+      console.log('Price ID:', import.meta.env.VITE_STRIPE_DONATION_PRICE_ID);
+      
+      // Verificar que las variables de entorno estén definidas
+      if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) {
+        console.error('Stripe publishable key not found');
+        alert('Error: Stripe no está configurado correctamente');
+        return;
+      }
+      
+      if (!import.meta.env.VITE_STRIPE_DONATION_PRICE_ID) {
+        console.error('Stripe donation price ID not found');
+        alert('Error: ID de precio de donación no encontrado');
+        return;
+      }
+
+      // Cargar Stripe
       const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
       if (!stripe) {
         console.error('Stripe failed to load');
+        alert('Error: No se pudo cargar Stripe');
         return;
       }
+
+      console.log('Stripe loaded successfully');
 
       // Redirigir a Stripe Checkout para donaciones
       const { error } = await stripe.redirectToCheckout({
         lineItems: [
           {
-            price: import.meta.env.VITE_STRIPE_DONATION_PRICE_ID, // ID del precio de donación en Stripe
+            price: import.meta.env.VITE_STRIPE_DONATION_PRICE_ID,
             quantity: 1,
           },
         ],
@@ -43,10 +63,12 @@ const Layout = ({ children }: LayoutProps) => {
       });
 
       if (error) {
-        console.error('Error:', error);
+        console.error('Stripe checkout error:', error);
+        alert(`Error: ${error.message}`);
       }
     } catch (error) {
       console.error('Error processing donation:', error);
+      alert('Error al procesar la donación');
     }
   };
 
