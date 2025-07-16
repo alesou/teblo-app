@@ -24,29 +24,40 @@ const Layout = ({ children }: LayoutProps) => {
   console.log('Environment variables check - Updated:', new Date().toISOString());
   console.log('VITE_STRIPE_PUBLISHABLE_KEY:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   console.log('VITE_STRIPE_DONATION_PRICE_ID:', import.meta.env.VITE_STRIPE_DONATION_PRICE_ID);
-  console.log('All env vars:', import.meta.env);
+  
+  // Force environment variables reload
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY;
+  const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || process.env.VITE_STRIPE_DONATION_PRICE_ID;
+  
+  console.log('Stripe key (forced):', stripeKey);
+  console.log('Price ID (forced):', priceId);
 
   const handleDonation = async () => {
     try {
       console.log('Donation button clicked');
-      console.log('Stripe key:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-      console.log('Price ID:', import.meta.env.VITE_STRIPE_DONATION_PRICE_ID);
+      
+      // Use forced environment variables
+      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY;
+      const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || process.env.VITE_STRIPE_DONATION_PRICE_ID;
+      
+      console.log('Stripe key:', stripeKey);
+      console.log('Price ID:', priceId);
       
       // Verificar que las variables de entorno estén definidas
-      if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) {
+      if (!stripeKey) {
         console.error('Stripe publishable key not found');
         alert('Error: Stripe no está configurado correctamente');
         return;
       }
       
-      if (!import.meta.env.VITE_STRIPE_DONATION_PRICE_ID) {
+      if (!priceId) {
         console.error('Stripe donation price ID not found');
         alert('Error: ID de precio de donación no encontrado');
         return;
       }
 
       // Cargar Stripe
-      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+      const stripe = await loadStripe(stripeKey);
       if (!stripe) {
         console.error('Stripe failed to load');
         alert('Error: No se pudo cargar Stripe');
@@ -59,7 +70,7 @@ const Layout = ({ children }: LayoutProps) => {
       const { error } = await stripe.redirectToCheckout({
         lineItems: [
           {
-            price: import.meta.env.VITE_STRIPE_DONATION_PRICE_ID,
+            price: priceId,
             quantity: 1,
           },
         ],
