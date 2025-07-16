@@ -136,13 +136,32 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
       });
     }
     
-    const invoiceNumber = `${settings.invoicePrefix}-${settings.nextNumber}`;
+    // Generate unique invoice number
+    let invoiceNumber = `${settings.invoicePrefix}-${settings.nextNumber}`;
+    let nextNumber = settings.nextNumber;
+    
+    // Check if invoice number already exists and generate a new one if needed
+    let existingInvoice = await prisma.invoice.findUnique({
+      where: { number: invoiceNumber }
+    });
+    
+    while (existingInvoice) {
+      nextNumber++;
+      invoiceNumber = `${settings.invoicePrefix}-${nextNumber}`;
+      existingInvoice = await prisma.invoice.findUnique({
+        where: { number: invoiceNumber }
+      });
+    }
+    
+    console.log(`Using invoice number: ${invoiceNumber}`);
+    
     // Calculate total
     const total = items.reduce((sum: number, item: any) => {
       const subtotal = item.quantity * item.price;
       const vat = subtotal * (item.vatRate / 100);
       return sum + subtotal + vat;
     }, 0);
+    
     // Create invoice with items
     const invoice = await prisma.invoice.create({
       data: {
@@ -171,10 +190,10 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
         items: true
       }
     });
-    // Update next number
+    // Update next number with the actual number used
     await prisma.settings.update({
       where: { userId: req.userId },
-      data: { nextNumber: settings.nextNumber + 1 }
+      data: { nextNumber: nextNumber + 1 }
     });
     
     console.log('Invoice created successfully:', invoice.id);
