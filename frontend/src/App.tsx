@@ -10,7 +10,6 @@ import Welcome from './pages/Welcome';
 import Onboarding from './pages/Onboarding';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './firebase';
-import { useOnboarding } from './hooks/useOnboarding';
 
 // Auth context
 export const AuthContext = createContext<{ user: User | null }>({ user: null });
