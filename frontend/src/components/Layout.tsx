@@ -20,6 +20,12 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const { user } = useAuth();
 
+  // Debug: Log environment variables on component mount
+  console.log('Environment variables check:');
+  console.log('VITE_STRIPE_PUBLISHABLE_KEY:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+  console.log('VITE_STRIPE_DONATION_PRICE_ID:', import.meta.env.VITE_STRIPE_DONATION_PRICE_ID);
+  console.log('All env vars:', import.meta.env);
+
   const handleDonation = async () => {
     try {
       console.log('Donation button clicked');
