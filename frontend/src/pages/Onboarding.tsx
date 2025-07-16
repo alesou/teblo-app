@@ -35,6 +35,8 @@ const Onboarding: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 handleSubmit called with settings:', settings);
+    
     if (!settings.companyName.trim()) {
       setError("El nombre de la empresa es obligatorio");
       return;
@@ -48,15 +50,20 @@ const Onboarding: React.FC = () => {
       return;
     }
     
+    console.log('✅ Validation passed, saving settings...');
     setSaving(true);
     setError(null);
     
     try {
+      console.log('📡 Calling settingsApi.update...');
       await settingsApi.update(settings);
+      console.log('✅ Settings saved successfully, navigating to dashboard...');
       // Redirigir al dashboard después de completar el onboarding
       navigate('/');
     } catch (err: any) {
-      console.error('Error saving settings:', err);
+      console.error('❌ Error saving settings:', err);
+      console.error('❌ Error response:', err?.response);
+      console.error('❌ Error status:', err?.response?.status);
       
       // Si es un error 401, hacer logout y redirigir al login
       if (err?.response?.status === 401) {
