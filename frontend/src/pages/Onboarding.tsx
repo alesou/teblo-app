@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { settingsApi } from "../services/api";
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -15,7 +14,6 @@ interface Settings {
 }
 
 const Onboarding: React.FC = () => {
-  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [settings, setSettings] = useState<Settings>({
     companyName: "",
