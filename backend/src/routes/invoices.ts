@@ -99,10 +99,28 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ error: 'Client and items are required' });
     }
     // Get next invoice number
-    const settings = await prisma.settings.findUnique({
-      where: { id: 'settings' }
+    let settings = await prisma.settings.findUnique({
+      where: { userId: req.userId }
     });
-    const invoiceNumber = `${settings?.invoicePrefix || 'FAC'}-${settings?.nextNumber || 1}`;
+    
+    // Create default settings if they don't exist
+    if (!settings) {
+      settings = await prisma.settings.create({
+        data: {
+          userId: req.userId,
+          companyName: "Mi Empresa",
+          companyNif: "",
+          companyAddress: "",
+          logoUrl: "",
+          invoicePrefix: "FAC",
+          nextNumber: 1,
+          companyPhone: "",
+          companyWeb: ""
+        }
+      });
+    }
+    
+    const invoiceNumber = `${settings.invoicePrefix}-${settings.nextNumber}`;
     // Calculate total
     const total = items.reduce((sum: number, item: any) => {
       const subtotal = item.quantity * item.price;
@@ -139,8 +157,8 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res) => {
     });
     // Update next number
     await prisma.settings.update({
-      where: { id: 'settings' },
-      data: { nextNumber: (settings?.nextNumber || 1) + 1 }
+      where: { userId: req.userId },
+      data: { nextNumber: settings.nextNumber + 1 }
     });
     res.status(201).json(invoice);
   } catch (error) {
