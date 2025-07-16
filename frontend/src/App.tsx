@@ -20,7 +20,8 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
-  const { needsOnboarding, loading: onboardingLoading } = useOnboarding();
+  const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(null);
+  const [onboardingLoading, setOnboardingLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
@@ -32,11 +33,57 @@ function App() {
     return () => unsub();
   }, []);
 
-  // Solo verificar onboarding después de que la autenticación esté completa
+  // Check onboarding when user is authenticated
   useEffect(() => {
-    if (!authChecked || !user) {
-      return;
-    }
+    const checkOnboarding = async () => {
+      if (!authChecked || !user) {
+        console.log('⏳ Waiting for auth...');
+        return;
+      }
+
+      console.log('🔍 Checking onboarding for user:', user.uid);
+      setOnboardingLoading(true);
+
+      try {
+        const response = await fetch('https://api.teblo.app/api/settings', {
+          headers: {
+            'Authorization': `Bearer ${await user.getIdToken()}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('📡 Settings API response status:', response.status);
+
+        if (response.status === 404) {
+          console.log('✅ No settings found - user needs onboarding');
+          setNeedsOnboarding(true);
+        } else if (response.ok) {
+          const settings = await response.json();
+          console.log('📋 Settings found:', settings);
+          
+          const hasRequiredFields = settings && 
+            settings.companyName && 
+            settings.companyName.trim() !== '' &&
+            settings.companyNif && 
+            settings.companyNif.trim() !== '' &&
+            settings.companyAddress && 
+            settings.companyAddress.trim() !== '';
+          
+          console.log('✅ Has required fields:', hasRequiredFields);
+          setNeedsOnboarding(!hasRequiredFields);
+        } else {
+          console.log('⚠️ API error - assuming onboarding needed');
+          setNeedsOnboarding(true);
+        }
+      } catch (error) {
+        console.error('❌ Error checking onboarding:', error);
+        setNeedsOnboarding(true);
+      } finally {
+        setOnboardingLoading(false);
+      }
+    };
+
+    checkOnboarding();
   }, [authChecked, user]);
 
   console.log('🎯 App render state:', {
@@ -47,20 +94,10 @@ function App() {
     onboardingLoading
   });
 
-  // Debug: Log when onboarding check should happen
-  if (authChecked && user && !onboardingLoading) {
-    console.log('🔍 Onboarding check conditions met:', {
-      authChecked,
-      userExists: !!user,
-      needsOnboarding,
-      onboardingLoading
-    });
-  }
-
   if (loading) return <div>Cargando...</div>;
   if (!user) return <Welcome />;
 
-  // Solo verificar onboarding si el usuario está autenticado
+  // Show onboarding if needed
   if (authChecked && user && needsOnboarding && !onboardingLoading) {
     console.log('🚀 Showing onboarding for user:', user.uid);
     return <Onboarding />;
