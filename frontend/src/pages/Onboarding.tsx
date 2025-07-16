@@ -58,8 +58,8 @@ const Onboarding: React.FC = () => {
       console.log('📡 Calling settingsApi.update...');
       await settingsApi.update(settings);
       console.log('✅ Settings saved successfully, navigating to dashboard...');
-      // Redirigir al dashboard después de completar el onboarding
-      navigate('/');
+      // Forzar recarga para que el estado de onboarding se actualice
+      window.location.href = '/';
     } catch (err: any) {
       console.error('❌ Error saving settings:', err);
       console.error('❌ Error response:', err?.response);
@@ -70,7 +70,7 @@ const Onboarding: React.FC = () => {
         setError("Error de autenticación. Serás redirigido al login.");
         setTimeout(async () => {
           await signOut(auth);
-          navigate('/');
+          window.location.href = '/';
         }, 2000);
       } else {
         setError("Error al guardar la configuración");
