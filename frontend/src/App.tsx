@@ -24,6 +24,7 @@ function App() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log('👤 Auth state changed:', firebaseUser?.uid);
       setUser(firebaseUser);
       setLoading(false);
       setAuthChecked(true);
@@ -38,13 +39,24 @@ function App() {
     }
   }, [authChecked, user]);
 
+  console.log('🎯 App render state:', {
+    loading,
+    user: user?.uid,
+    authChecked,
+    needsOnboarding,
+    onboardingLoading
+  });
+
   if (loading) return <div>Cargando...</div>;
   if (!user) return <Welcome />;
 
   // Solo verificar onboarding si el usuario está autenticado
   if (authChecked && user && needsOnboarding && !onboardingLoading) {
+    console.log('🚀 Showing onboarding for user:', user.uid);
     return <Onboarding />;
   }
+
+  console.log('🏠 Showing main app for user:', user?.uid);
 
   return (
     <AuthContext.Provider value={{ user }}>
