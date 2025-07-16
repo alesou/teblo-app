@@ -30,8 +30,12 @@ RUN npm run build
 # Install serve to run the app
 RUN npm install -g serve
 
-# Expose port
-EXPOSE 3000
+# Make start script executable
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-# Start the app
-CMD ["serve", "-s", "dist", "-l", "3000"] 
+# Expose port (Railway will override this)
+EXPOSE $PORT
+
+# Start the app with Railway-compatible configuration
+CMD ["/app/start.sh"] 
