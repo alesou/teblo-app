@@ -4,11 +4,13 @@ import {
   Users, 
   FileText, 
   Settings, 
-  Plus 
+  Plus,
+  Heart
 } from 'lucide-react';
 import { useAuth } from '../App';
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import { loadStripe } from '@stripe/stripe-js';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -17,6 +19,36 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const { user } = useAuth();
+
+  const handleDonation = async () => {
+    try {
+      // Aquí puedes cambiar la URL de tu Stripe Checkout
+      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+      if (!stripe) {
+        console.error('Stripe failed to load');
+        return;
+      }
+
+      // Redirigir a Stripe Checkout para donaciones
+      const { error } = await stripe.redirectToCheckout({
+        lineItems: [
+          {
+            price: import.meta.env.VITE_STRIPE_DONATION_PRICE_ID, // ID del precio de donación en Stripe
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        successUrl: `${window.location.origin}/?success=true`,
+        cancelUrl: `${window.location.origin}/?canceled=true`,
+      });
+
+      if (error) {
+        console.error('Error:', error);
+      }
+    } catch (error) {
+      console.error('Error processing donation:', error);
+    }
+  };
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
@@ -83,6 +115,13 @@ const Layout = ({ children }: LayoutProps) => {
                 <Plus className="mr-3 h-5 w-5" />
                 Nueva Factura
               </Link>
+              <button
+                onClick={handleDonation}
+                className="flex items-center w-full px-4 py-3 text-sm font-medium text-pink-600 hover:bg-pink-50 hover:text-pink-700 rounded-lg transition-colors"
+              >
+                <Heart className="mr-3 h-5 w-5" />
+                Apoyar Teblo
+              </button>
             </div>
           </div>
         </nav>
