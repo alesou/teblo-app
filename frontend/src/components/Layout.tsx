@@ -29,20 +29,20 @@ const Layout = ({ children }: LayoutProps) => {
   console.log('All VITE_ env vars:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
   console.log('import.meta.env object:', import.meta.env);
   
-  // Use only import.meta.env (Vite way)
-  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-  const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID;
+  // Use direct values as fallback (temporary solution)
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_live_51RWfR02Nu5dzs1iO0oiH2kXjVLZD9MSinC';
+  const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || 'price_1Rlbdz2Nu5dzs1i0PTx20FP7';
   
-  console.log('Stripe key (simplified):', stripeKey);
-  console.log('Price ID (simplified):', priceId);
+  console.log('Stripe key (with fallback):', stripeKey);
+  console.log('Price ID (with fallback):', priceId);
 
   const handleDonation = async () => {
     try {
       console.log('Donation button clicked');
       
-      // Use simplified environment variables
-      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-      const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID;
+      // Use direct values as fallback (temporary solution)
+      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_live_51RWfR02Nu5dzs1iO0oiH2kXjVLZD9MSinC';
+      const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || 'price_1Rlbdz2Nu5dzs1i0PTx20FP7';
       
       console.log('Stripe key:', stripeKey);
       console.log('Price ID:', priceId);
