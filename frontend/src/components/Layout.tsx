@@ -61,6 +61,7 @@ const Layout = ({ children }: LayoutProps) => {
       }
 
       // Cargar Stripe
+      console.log('Loading Stripe with key:', stripeKey);
       const stripe = await loadStripe(stripeKey);
       if (!stripe) {
         console.error('Stripe failed to load');
@@ -71,6 +72,7 @@ const Layout = ({ children }: LayoutProps) => {
       console.log('Stripe loaded successfully');
 
       // Redirigir a Stripe Checkout para donaciones
+      console.log('Redirecting to Stripe Checkout with price ID:', priceId);
       const { error } = await stripe.redirectToCheckout({
         lineItems: [
           {
