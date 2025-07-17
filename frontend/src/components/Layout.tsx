@@ -153,16 +153,40 @@ const Layout = ({ children }: LayoutProps) => {
     </>
   );
 
+  // Get current page title
+  const getPageTitle = () => {
+    const currentPage = navigation.find(item => item.href === location.pathname);
+    if (location.pathname === '/invoices/new') return 'Crear Factura';
+    if (location.pathname === '/clients') return 'Clientes';
+    if (location.pathname === '/invoices') return 'Facturas';
+    if (location.pathname === '/settings') return 'Configuración';
+    return currentPage?.name || 'Dashboard';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-40">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="p-2 bg-white rounded-lg shadow-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <h1 className="text-lg font-semibold text-gray-900">{getPageTitle()}</h1>
+          </div>
+          {location.pathname === '/invoices' && (
+            <Link
+              to="/invoices/new"
+              className="flex items-center px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -183,7 +207,7 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Main content */}
       <div className="lg:pl-64">
-        <main className="py-8 px-4 lg:px-8">
+        <main className="pt-16 lg:pt-8 px-4 lg:px-8 pb-8">
           {children}
         </main>
       </div>
