@@ -4,7 +4,7 @@ import { settingsApi, invoicesApi, clientsApi } from '../services/api';
 import NativePDFGenerator, { InvoicePDF } from '../components/NativePDFGenerator';
 import NativeMultiPDFGenerator from '../components/NativeMultiPDFGenerator';
 import { PDFViewer } from '@react-pdf/renderer';
-import { Search, Filter, Download, Eye, Trash2, CheckCircle, XCircle, Edit, X } from 'lucide-react';
+import { Search, Filter, Download, Eye, Trash2, CheckCircle, XCircle, X } from 'lucide-react';
 import type { Settings, Invoice } from '../types';
 
 interface InvoiceWithExtras extends Invoice {
