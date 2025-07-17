@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoicesApi, clientsApi, settingsApi } from '../services/api';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { Plus, Trash2, Save, Download, ArrowLeft } from 'lucide-react';
 import type { Invoice, Settings } from '../types';
 
 // Registrar fuentes del sistema
@@ -249,7 +250,7 @@ const InvoicePDF = ({ invoice, settings }: { invoice: Invoice; settings: Setting
                 <Text style={styles.tableCellRight}>{item.quantity}</Text>
                 <Text style={styles.tableCellRight}>{formatCurrency(item.price)}</Text>
                 <Text style={styles.tableCellRight}>{item.vatRate}%</Text>
-                <Text style={[styles.tableCellRight, { fontFamily: 'Helvetica-Bold' }]}>{formatCurrency(itemTotal)}</Text>
+                <Text style={styles.tableCellRight}>{formatCurrency(itemTotal)}</Text>
               </View>
             );
           })}
@@ -268,7 +269,7 @@ const InvoicePDF = ({ invoice, settings }: { invoice: Invoice; settings: Setting
             </View>
             <View style={styles.totalRowBold}>
               <Text style={{ fontFamily: 'Helvetica-Bold' }}>Total:</Text>
-              <Text style={styles.totalAmount}>{formatCurrency(invoice.total)}</Text>
+              <Text style={styles.totalAmount}>{formatCurrency(subtotal + totalIVA)}</Text>
             </View>
           </View>
         </View>
@@ -288,8 +289,7 @@ const InvoicePDF = ({ invoice, settings }: { invoice: Invoice; settings: Setting
           </View>
         )}
 
-        {/* Pie de página */}
-        <Text style={styles.footer}>Factura generada por Teblo App</Text>
+        <Text style={styles.footer}>Teblo - Facturación profesional</Text>
       </Page>
     </Document>
   );
@@ -317,7 +317,6 @@ const CreateInvoice: React.FC = () => {
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [notas, setNotas] = useState("");
   const [terminos, setTerminos] = useState("");
-  const previewRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [createdInvoice, setCreatedInvoice] = useState<Invoice | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -347,11 +346,10 @@ const CreateInvoice: React.FC = () => {
     
     setSaving(true);
     try {
-      // Crear factura en backend
       const newInvoice = await invoicesApi.create({
         clientId: clienteId,
         date: fecha,
-        dueDate: undefined, // No null, para evitar error de tipo
+        dueDate: undefined,
         items: conceptos.map(c => ({
           description: c.descripcion,
           quantity: c.cantidad,
@@ -359,17 +357,13 @@ const CreateInvoice: React.FC = () => {
           vatRate: c.iva
         })),
         notes: notas,
-        terms: terminos // Añadir términos de pago
+        terms: terminos
       });
 
-      // Obtener configuración para el PDF
       const settingsData = await settingsApi.get();
       setSettings(settingsData);
       setCreatedInvoice(newInvoice);
       setShowPDFDownload(true);
-
-      // Mostrar mensaje de éxito
-      alert("Factura guardada exitosamente. El PDF se descargará automáticamente.");
       
     } catch (err) {
       alert("Error al guardar la factura");
@@ -382,39 +376,47 @@ const CreateInvoice: React.FC = () => {
     setShowPDFDownload(false);
     setCreatedInvoice(null);
     setSettings(null);
-    // Redirigir a la página de facturas
     navigate('/invoices');
   };
 
-  // Si estamos mostrando la descarga del PDF
+  // Modal de descarga de PDF
   if (showPDFDownload && createdInvoice && settings) {
     const safeClientName = createdInvoice.client.name.replace(/[^a-zA-Z0-9-_]/g, '_');
     const fileName = `factura-${createdInvoice.number}-${safeClientName}.pdf`;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-          <h3 className="text-lg font-semibold mb-4">Factura creada exitosamente</h3>
-          <p className="text-gray-600 mb-6">
-            La factura se ha guardado correctamente. Ahora puedes descargar el PDF.
-          </p>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Save className="h-8 w-8 text-green-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">¡Factura creada!</h3>
+            <p className="text-gray-600">
+              La factura se ha guardado correctamente. Ahora puedes descargar el PDF.
+            </p>
+          </div>
           
-          <div className="flex space-x-3">
+          <div className="space-y-3">
             <PDFDownloadLink
               document={<InvoicePDF invoice={createdInvoice} settings={settings} />}
               fileName={fileName}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-center"
+              className="w-full bg-primary-600 text-white px-4 py-3 rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center"
             >
-              {({ loading }) =>
-                loading ? 'Generando PDF...' : 'Descargar PDF'
-              }
+              {({ loading }) => (
+                <>
+                  <Download className="mr-2 h-5 w-5" />
+                  {loading ? 'Generando PDF...' : 'Descargar PDF'}
+                </>
+              )}
             </PDFDownloadLink>
             
             <button
               onClick={handleClosePDF}
-              className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition-colors"
+              className="w-full bg-gray-200 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
             >
-              Continuar
+              <ArrowLeft className="mr-2 h-5 w-5" />
+              Ir a Facturas
             </button>
           </div>
         </div>
@@ -423,183 +425,188 @@ const CreateInvoice: React.FC = () => {
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Crear factura</h1>
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded shadow">
-        <div>
-          <label className="block font-medium">Cliente</label>
-          <select
-            className="border rounded px-3 py-2 w-full"
-            value={clienteId}
-            onChange={e => setClienteId(e.target.value)}
-            required
-          >
-            <option value="">Seleccionar cliente</option>
-            {clientes.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block font-medium">Fecha</label>
-          <input
-            type="date"
-            className="border rounded px-3 py-2 w-full"
-            value={fecha}
-            onChange={e => setFecha(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label className="block font-medium mb-2">Conceptos</label>
-          {/* Etiquetas de los campos */}
-          <div className="flex gap-2 mb-2 text-xs font-medium text-gray-600 items-end">
-            <div className="flex-1 flex flex-col items-start">
-              <span>Descripción</span>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate('/invoices')}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <h1 className="text-2xl font-bold text-gray-900">Crear Factura</h1>
             </div>
-            <div className="w-16 flex flex-col items-center">
-              <span>Cantidad</span>
-            </div>
-            <div className="w-24 flex flex-col items-center">
-              <span>Precio</span>
-            </div>
-            <div className="w-20 flex flex-col items-center">
-              <span>IVA %</span>
-            </div>
-            <div className="w-16"></div>
           </div>
-          {conceptos.map((c, idx) => (
-            <div key={idx} className="flex gap-2 mb-2 items-center">
-              <input
-                className="border rounded px-2 py-1 flex-1"
-                placeholder="Descripción"
-                value={c.descripcion}
-                onChange={e => handleConceptoChange(idx, "descripcion", e.target.value)}
-                required
-              />
-              <input
-                type="number"
-                className="border rounded px-2 py-1 w-16"
-                min={1}
-                value={c.cantidad}
-                onChange={e => handleConceptoChange(idx, "cantidad", Number(e.target.value))}
-                required
-              />
-              <input
-                type="number"
-                className="border rounded px-2 py-1 w-24"
-                min={0}
-                step={0.01}
-                value={c.precio}
-                onChange={e => handleConceptoChange(idx, "precio", Number(e.target.value))}
-                required
-              />
-              <div className="w-20 flex items-center">
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Información básica */}
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Información Básica</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Cliente *</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={clienteId}
+                  onChange={e => setClienteId(e.target.value)}
+                  required
+                >
+                  <option value="">Seleccionar cliente</option>
+                  {clientes.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Fecha *</label>
                 <input
-                  type="number"
-                  className="border rounded px-2 py-1 w-14 text-right"
-                  min={0}
-                  max={21}
-                  value={c.iva}
-                  onChange={e => handleConceptoChange(idx, "iva", Number(e.target.value))}
+                  type="date"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={fecha}
+                  onChange={e => setFecha(e.target.value)}
                   required
                 />
-                <span className="ml-1 text-gray-600">%</span>
               </div>
-              {conceptos.length > 1 && (
-                <button type="button" className="text-red-600 ml-2" onClick={() => removeConcepto(idx)}>
-                  Eliminar
-                </button>
-              )}
             </div>
-          ))}
-          <button type="button" className="text-blue-600 mt-2" onClick={addConcepto}>
-            + Añadir otro concepto
-          </button>
-        </div>
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label className="block font-medium">Notas</label>
-            <textarea
-              className="border rounded px-3 py-2 w-full"
-              value={notas}
-              onChange={e => setNotas(e.target.value)}
-              placeholder="Notas u observaciones"
-              rows={2}
-            />
           </div>
-          <div className="flex-1">
-            <label className="block font-medium">Términos de pago</label>
-            <textarea
-              className="border rounded px-3 py-2 w-full"
-              value={terminos}
-              onChange={e => setTerminos(e.target.value)}
-              placeholder="Términos de pago"
-              rows={2}
-            />
-          </div>
-        </div>
-        <div className="text-right space-y-1">
-          <div>Subtotal: <b>{subtotal.toFixed(2)} €</b></div>
-          <div>IVA: <b>{totalIVA.toFixed(2)} €</b></div>
-          <div>Total: <b>{total.toFixed(2)} €</b></div>
-        </div>
-        <div className="flex justify-end gap-2">
-          <button 
-            type="submit" 
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-            disabled={saving}
-          >
-            {saving ? 'Guardando...' : 'Guardar factura y descargar PDF'}
-          </button>
-        </div>
-      </form>
 
-      {/* Previsualización en tiempo real */}
-      <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-2">Previsualización</h2>
-        <div ref={previewRef} className="bg-white p-8 rounded shadow border max-w-2xl mx-auto">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <div className="font-bold text-lg">Factura</div>
-              <div className="text-sm text-gray-500">Fecha: {fecha}</div>
+          {/* Conceptos */}
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Conceptos</h2>
+              <button
+                type="button"
+                onClick={addConcepto}
+                className="flex items-center px-3 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Añadir concepto
+              </button>
             </div>
-            <div className="text-right">
-              <div className="font-bold">{clientes.find(c => c.id === clienteId)?.name || "Cliente"}</div>
-            </div>
-          </div>
-          <table className="w-full mb-4">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="text-left px-2 py-1">Descripción</th>
-                <th className="text-right px-2 py-1">Cantidad</th>
-                <th className="text-right px-2 py-1">Precio</th>
-                <th className="text-right px-2 py-1">IVA (%)</th>
-                <th className="text-right px-2 py-1">Importe</th>
-              </tr>
-            </thead>
-            <tbody>
+
+            <div className="space-y-4">
               {conceptos.map((c, idx) => (
-                <tr key={idx}>
-                  <td className="px-2 py-1 border-b">{c.descripcion}</td>
-                  <td className="px-2 py-1 border-b text-right">{c.cantidad}</td>
-                  <td className="px-2 py-1 border-b text-right">{c.precio.toFixed(2)} €</td>
-                  <td className="px-2 py-1 border-b text-right">{c.iva}</td>
-                  <td className="px-2 py-1 border-b text-right">{(c.cantidad * c.precio * (1 + c.iva / 100)).toFixed(2)} €</td>
-                </tr>
+                <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div className="md:col-span-6">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Descripción *</label>
+                      <input
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Descripción del producto o servicio"
+                        value={c.descripcion}
+                        onChange={e => handleConceptoChange(idx, "descripcion", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Cantidad *</label>
+                      <input
+                        type="number"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        min={1}
+                        value={c.cantidad}
+                        onChange={e => handleConceptoChange(idx, "cantidad", Number(e.target.value))}
+                        required
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Precio *</label>
+                      <input
+                        type="number"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        min={0}
+                        step={0.01}
+                        value={c.precio}
+                        onChange={e => handleConceptoChange(idx, "precio", Number(e.target.value))}
+                        required
+                      />
+                    </div>
+                    <div className="md:col-span-1">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">IVA %</label>
+                      <input
+                        type="number"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        min={0}
+                        max={21}
+                        value={c.iva}
+                        onChange={e => handleConceptoChange(idx, "iva", Number(e.target.value))}
+                        required
+                      />
+                    </div>
+                    <div className="md:col-span-1 flex items-end">
+                      {conceptos.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeConcepto(idx)}
+                          className="w-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-3 text-sm text-gray-600">
+                    Subtotal: {(c.cantidad * c.precio).toFixed(2)} € | 
+                    IVA: {((c.cantidad * c.precio * c.iva) / 100).toFixed(2)} € | 
+                    Total: {(c.cantidad * c.precio * (1 + c.iva / 100)).toFixed(2)} €
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-          <div className="flex justify-end mb-2">
-            <div className="w-64">
-              <div className="flex justify-between"><span>Subtotal:</span><span>{subtotal.toFixed(2)} €</span></div>
-              <div className="flex justify-between"><span>IVA:</span><span>{totalIVA.toFixed(2)} €</span></div>
-              <div className="flex justify-between font-bold"><span>Total:</span><span>{total.toFixed(2)} €</span></div>
             </div>
           </div>
-          {notas && <div className="mt-4"><b>Notas:</b> {notas}</div>}
-          {terminos && <div className="mt-2 text-sm text-gray-600"><b>Términos de pago:</b> {terminos}</div>}
-        </div>
+
+          {/* Notas y términos */}
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Información Adicional</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={notas}
+                  onChange={e => setNotas(e.target.value)}
+                  placeholder="Notas u observaciones"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Términos de pago</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={terminos}
+                  onChange={e => setTerminos(e.target.value)}
+                  placeholder="Términos de pago"
+                  rows={3}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Totales */}
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <div className="text-sm text-gray-600">Subtotal: <span className="font-medium">{subtotal.toFixed(2)} €</span></div>
+                <div className="text-sm text-gray-600">IVA: <span className="font-medium">{totalIVA.toFixed(2)} €</span></div>
+                <div className="text-lg font-bold text-gray-900">Total: {total.toFixed(2)} €</div>
+              </div>
+              <button 
+                type="submit" 
+                disabled={saving}
+                className="flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Save className="mr-2 h-5 w-5" />
+                {saving ? 'Guardando...' : 'Guardar Factura'}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );
