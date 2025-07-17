@@ -25,7 +25,7 @@ const Layout = ({ children }: LayoutProps) => {
   console.log('VITE_STRIPE_PUBLISHABLE_KEY:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   console.log('VITE_STRIPE_DONATION_PRICE_ID:', import.meta.env.VITE_STRIPE_DONATION_PRICE_ID);
   
-  // Force environment variables reload
+  // Force environment variables reload - FORCE REDEPLOY
   const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY;
   const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || process.env.VITE_STRIPE_DONATION_PRICE_ID;
   
