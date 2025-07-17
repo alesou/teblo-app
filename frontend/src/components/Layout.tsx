@@ -4,11 +4,13 @@ import {
   Users, 
   FileText, 
   Settings, 
-  Plus
+  Plus,
+  Heart
 } from 'lucide-react';
 import { useAuth } from '../App';
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import { useState } from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -17,6 +19,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const { user } = useAuth();
+  const [showDonationModal, setShowDonationModal] = useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
@@ -24,6 +27,36 @@ const Layout = ({ children }: LayoutProps) => {
     { name: 'Facturas', href: '/invoices', icon: FileText },
     { name: 'Configuración', href: '/settings', icon: Settings },
   ];
+
+  const donationOptions = [
+    {
+      name: 'Café ☕',
+      amount: 3,
+      description: 'Un café para mantener Teblo funcionando'
+    },
+    {
+      name: 'Almuerzo 🍕',
+      amount: 10,
+      description: 'Un almuerzo para seguir mejorando Teblo'
+    },
+    {
+      name: 'Cena 🍽️',
+      amount: 25,
+      description: 'Una cena para nuevas funcionalidades'
+    },
+    {
+      name: 'Patrocinador 💎',
+      amount: 50,
+      description: 'Patrocinador oficial de Teblo'
+    }
+  ];
+
+  const handleDonation = (amount: number) => {
+    // Ko-fi - La opción más simple
+    const kofiUrl = `https://ko-fi.com/tebloapp?amount=${amount * 100}`;
+    window.open(kofiUrl, '_blank');
+    setShowDonationModal(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,6 +116,13 @@ const Layout = ({ children }: LayoutProps) => {
                 <Plus className="mr-3 h-5 w-5" />
                 Nueva Factura
               </Link>
+              <button
+                onClick={() => setShowDonationModal(true)}
+                className="flex items-center w-full px-4 py-3 text-sm font-medium text-primary-600 hover:bg-primary-50 hover:text-primary-700 rounded-lg transition-colors"
+              >
+                <Heart className="mr-3 h-5 w-5" />
+                Donar
+              </button>
             </div>
           </div>
         </nav>
@@ -94,6 +134,51 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </main>
       </div>
+
+      {/* Donation Modal */}
+      {showDonationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">¿Te gusta Teblo? ❤️</h2>
+            <button
+              onClick={() => setShowDonationModal(false)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <p className="text-gray-600 mb-6">
+            Si Teblo te está ayudando en tu negocio, considera hacer una donación para mantener el proyecto vivo y seguir mejorando la aplicación.
+          </p>
+
+            <div className="space-y-3">
+              {donationOptions.map((option) => (
+                              <button
+                key={option.name}
+                onClick={() => handleDonation(option.amount)}
+                className="w-full p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors text-left"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="font-semibold text-gray-900">{option.name}</div>
+                    <div className="text-sm text-gray-500">{option.description}</div>
+                  </div>
+                  <div className="text-lg font-bold text-primary-600">€{option.amount}</div>
+                </div>
+              </button>
+              ))}
+            </div>
+
+            <div className="mt-6 text-center">
+              <p className="text-xs text-gray-500">
+                Las donaciones ayudan a mantener Teblo gratis, sin anuncios y en constante mejora
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
