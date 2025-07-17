@@ -25,6 +25,10 @@ const Layout = ({ children }: LayoutProps) => {
   console.log('VITE_STRIPE_PUBLISHABLE_KEY:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   console.log('VITE_STRIPE_DONATION_PRICE_ID:', import.meta.env.VITE_STRIPE_DONATION_PRICE_ID);
   
+  // Log all environment variables to debug
+  console.log('All VITE_ env vars:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
+  console.log('import.meta.env object:', import.meta.env);
+  
   // Use only import.meta.env (Vite way)
   const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID;
