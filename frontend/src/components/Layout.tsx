@@ -30,8 +30,8 @@ const Layout = ({ children }: LayoutProps) => {
   console.log('import.meta.env object:', import.meta.env);
   
   // Use test mode fallback values (temporary solution)
-  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51RWfR02Nu5dzs1iO0oiH2kXjVLZD9MSinC';
-  const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || 'price_1Rlbdz2Nu5dzs1i0PTx20FP7';
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51RWfR02Nu5dzs1iObQCzriKQxuVwwIRRQTZ4fvLAOXZ82Wt8qXlg0d3qCggnTrcIWSDbePVD6TdTar1awXkkuIy100Gf4M4tLP';
+  const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || 'price_1RltmV2Nu5dzs1iOwzc9ah4c';
   
   console.log('Stripe key (with fallback):', stripeKey);
   console.log('Price ID (with fallback):', priceId);
@@ -41,8 +41,8 @@ const Layout = ({ children }: LayoutProps) => {
       console.log('Donation button clicked');
       
       // Use test mode fallback values (temporary solution)
-      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51RWfR02Nu5dzs1iO0oiH2kXjVLZD9MSinC';
-      const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || 'price_1Rlbdz2Nu5dzs1i0PTx20FP7';
+      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51RWfR02Nu5dzs1iObQCzriKQxuVwwIRRQTZ4fvLAOXZ82Wt8qXlg0d3qCggnTrcIWSDbePVD6TdTar1awXkkuIy100Gf4M4tLP';
+      const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || 'price_1RltmV2Nu5dzs1iOwzc9ah4c';
       
       console.log('Stripe key:', stripeKey);
       console.log('Price ID:', priceId);
