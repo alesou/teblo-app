@@ -12,5 +12,9 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  // Force environment variables to be included in build
+  define: {
+    'process.env': {}
   }
 }) 
