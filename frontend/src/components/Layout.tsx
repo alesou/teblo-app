@@ -25,20 +25,20 @@ const Layout = ({ children }: LayoutProps) => {
   console.log('VITE_STRIPE_PUBLISHABLE_KEY:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   console.log('VITE_STRIPE_DONATION_PRICE_ID:', import.meta.env.VITE_STRIPE_DONATION_PRICE_ID);
   
-  // Force environment variables reload - FORCE REDEPLOY
-  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY;
-  const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || process.env.VITE_STRIPE_DONATION_PRICE_ID;
+  // Use only import.meta.env (Vite way)
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+  const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID;
   
-  console.log('Stripe key (forced):', stripeKey);
-  console.log('Price ID (forced):', priceId);
+  console.log('Stripe key (simplified):', stripeKey);
+  console.log('Price ID (simplified):', priceId);
 
   const handleDonation = async () => {
     try {
       console.log('Donation button clicked');
       
-      // Use forced environment variables
-      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY;
-      const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID || process.env.VITE_STRIPE_DONATION_PRICE_ID;
+      // Use simplified environment variables
+      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+      const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID;
       
       console.log('Stripe key:', stripeKey);
       console.log('Price ID:', priceId);
