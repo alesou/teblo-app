@@ -4,13 +4,11 @@ import {
   Users, 
   FileText, 
   Settings, 
-  Plus,
-  Heart
+  Plus
 } from 'lucide-react';
 import { useAuth } from '../App';
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
-import { loadStripe } from '@stripe/stripe-js';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,81 +17,6 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const { user } = useAuth();
-
-  // Debug: Log environment variables on component mount
-  console.log('Environment variables check - Updated:', new Date().toISOString());
-  console.log('VITE_STRIPE_PUBLISHABLE_KEY:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-  console.log('VITE_STRIPE_DONATION_PRICE_ID:', import.meta.env.VITE_STRIPE_DONATION_PRICE_ID);
-  
-  // Log all environment variables to debug
-  console.log('All VITE_ env vars:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
-  console.log('import.meta.env object:', import.meta.env);
-  
-  // Use environment variables
-  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-  const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID;
-  
-  console.log('Stripe key:', stripeKey);
-  console.log('Price ID:', priceId);
-
-  const handleDonation = async () => {
-    try {
-      console.log('Donation button clicked');
-      
-      // Use environment variables
-      const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-      const priceId = import.meta.env.VITE_STRIPE_DONATION_PRICE_ID;
-      
-      console.log('Stripe key:', stripeKey);
-      console.log('Price ID:', priceId);
-      
-      // Verificar que las variables de entorno estén definidas
-      if (!stripeKey) {
-        console.error('Stripe publishable key not found');
-        alert('Error: Stripe no está configurado correctamente');
-        return;
-      }
-      
-      if (!priceId) {
-        console.error('Stripe donation price ID not found');
-        alert('Error: ID de precio de donación no encontrado');
-        return;
-      }
-
-      // Cargar Stripe
-      console.log('Loading Stripe with key:', stripeKey);
-      const stripe = await loadStripe(stripeKey);
-      if (!stripe) {
-        console.error('Stripe failed to load');
-        alert('Error: No se pudo cargar Stripe');
-        return;
-      }
-
-      console.log('Stripe loaded successfully');
-
-      // Redirigir a Stripe Checkout para donaciones
-      console.log('Redirecting to Stripe Checkout with price ID:', priceId);
-      const { error } = await stripe.redirectToCheckout({
-        lineItems: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        successUrl: `${window.location.origin}/?success=true`,
-        cancelUrl: `${window.location.origin}/?canceled=true`,
-      });
-
-      if (error) {
-        console.error('Stripe checkout error:', error);
-        alert(`Error: ${error.message}`);
-      }
-    } catch (error) {
-      console.error('Error processing donation:', error);
-      alert('Error al procesar la donación');
-    }
-  };
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
@@ -160,13 +83,6 @@ const Layout = ({ children }: LayoutProps) => {
                 <Plus className="mr-3 h-5 w-5" />
                 Nueva Factura
               </Link>
-              <button
-                onClick={handleDonation}
-                className="flex items-center w-full px-4 py-3 text-sm font-medium text-pink-600 hover:bg-pink-50 hover:text-pink-700 rounded-lg transition-colors"
-              >
-                <Heart className="mr-3 h-5 w-5" />
-                Apoyar Teblo
-              </button>
             </div>
           </div>
         </nav>
