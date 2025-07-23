@@ -400,14 +400,26 @@ const Invoices: React.FC = () => {
                     <td className="border px-4 py-3 font-medium">€{invoice.total.toFixed(2)}</td>
                     <td className="border px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-2">
-                        <button onClick={() => handleDelete(invoice.id)} className="text-red-600 hover:text-red-700">
+                        <button 
+                          onClick={() => handleDelete(invoice.id)} 
+                          className="text-red-600 hover:text-red-700"
+                          title="Eliminar factura"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
-                        <button onClick={() => openPaidModal(invoice)} className="text-green-600 hover:text-green-700">
+                        <button 
+                          onClick={() => openPaidModal(invoice)} 
+                          className="text-green-600 hover:text-green-700"
+                          title="Marcar como pagada"
+                        >
                           <CheckCircle className="h-4 w-4" />
                         </button>
                         {invoice.status !== 'CANCELLED' && (
-                          <button onClick={() => handleCancel(invoice)} className="text-gray-600 hover:text-gray-700">
+                          <button 
+                            onClick={() => handleCancel(invoice)} 
+                            className="text-gray-600 hover:text-gray-700"
+                            title="Anular factura"
+                          >
                             <XCircle className="h-4 w-4" />
                           </button>
                         )}
@@ -459,6 +471,7 @@ const Invoices: React.FC = () => {
                   <button 
                     onClick={() => handleShowPreview(invoice)}
                     className="flex items-center px-3 py-1 text-sm text-primary-600 hover:text-primary-700"
+                    title="Ver previsualización de la factura"
                   >
                     <Eye className="mr-1 h-4 w-4" />
                     Ver
@@ -466,6 +479,7 @@ const Invoices: React.FC = () => {
                   <button 
                     onClick={() => openPaidModal(invoice)}
                     className="flex items-center px-3 py-1 text-sm text-green-600 hover:text-green-700"
+                    title="Marcar como pagada"
                   >
                     <CheckCircle className="mr-1 h-4 w-4" />
                     Pagar
@@ -473,6 +487,7 @@ const Invoices: React.FC = () => {
                   <button 
                     onClick={() => handleDelete(invoice.id)}
                     className="flex items-center px-3 py-1 text-sm text-red-600 hover:text-red-700"
+                    title="Eliminar factura"
                   >
                     <Trash2 className="mr-1 h-4 w-4" />
                     Eliminar
@@ -481,6 +496,7 @@ const Invoices: React.FC = () => {
                     <button 
                       onClick={() => handleCancel(invoice)}
                       className="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-gray-700"
+                      title="Anular factura"
                     >
                       <XCircle className="mr-1 h-4 w-4" />
                       Anular
