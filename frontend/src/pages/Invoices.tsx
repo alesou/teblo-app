@@ -54,19 +54,40 @@ const Invoices: React.FC = () => {
     type: 'PARTIALLY_PAID' as 'PAID' | 'PARTIALLY_PAID',
     note: ''
   });
+  const [invoicePayments, setInvoicePayments] = useState<{[key: string]: Payment[]}>({});
 
   const fetchInvoices = async () => {
     try {
       setLoading(true);
       const data = await invoicesApi.getAll();
-      setInvoices(Array.isArray(data) ? data as InvoiceWithExtras[] : []);
+      const invoicesData = Array.isArray(data) ? data as InvoiceWithExtras[] : [];
+      setInvoices(invoicesData);
       setError(null);
+      
+      // Cargar pagos para todas las facturas
+      await loadPaymentsForInvoices(invoicesData);
     } catch (err: any) {
       setError("Error al cargar las facturas");
       setInvoices([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadPaymentsForInvoices = async (invoices: InvoiceWithExtras[]) => {
+    const paymentsMap: {[key: string]: Payment[]} = {};
+    
+    for (const invoice of invoices) {
+      try {
+        const paymentsData = await invoicesApi.getPayments(invoice.id);
+        paymentsMap[invoice.id] = paymentsData;
+      } catch (err) {
+        console.error(`Error loading payments for invoice ${invoice.id}:`, err);
+        paymentsMap[invoice.id] = [];
+      }
+    }
+    
+    setInvoicePayments(paymentsMap);
   };
 
   const fetchClients = async () => {
@@ -167,34 +188,59 @@ const Invoices: React.FC = () => {
     if (!paidInvoice) return;
     const amountPaid = parseFloat(paidAmount.replace(',', '.'));
     if (isNaN(amountPaid) || amountPaid <= 0) {
-      alert('Importe no válido');
+      setError('Importe no válido');
       return;
     }
     try {
-      await fetch(`https://api.teblo.app/api/invoices/${paidInvoice.id}/payments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: amountPaid,
-          date: paidDate,
-          type: paidType,
-          note: `Pago registrado - ${paidType === 'PAID' ? 'Total' : 'Parcial'}`
-        })
+      setSaving(true);
+      
+      // Registrar el pago usando la API
+      await invoicesApi.addPayment(paidInvoice.id, {
+        amount: amountPaid,
+        date: paidDate,
+        type: paidType,
+        note: `Pago registrado - ${paidType === 'PAID' ? 'Total' : 'Parcial'}`
       });
       
-      const newStatus = paidType === 'PAID' ? 'PAID' : 'PENDING';
-      await invoicesApi.update(paidInvoice.id, {
-        date: paidInvoice.date,
-        status: newStatus,
-        items: paidInvoice.items || [],
-        notes: paidInvoice.notes
-      });
+      // Recargar los pagos para actualizar la vista
+      const paymentsData = await invoicesApi.getPayments(paidInvoice.id);
+      setPayments(paymentsData);
       
-      setShowPaidModal(false);
-      fetchInvoices();
-      alert('Pago registrado correctamente');
+      // Actualizar el estado de la factura si es necesario
+      const totalPaid = calculateTotalPaid(paymentsData);
+      
+      let newStatus = paidInvoice.status;
+      if (totalPaid >= paidInvoice.total) {
+        newStatus = 'PAID';
+      } else if (totalPaid > 0) {
+        newStatus = 'PENDING';
+      }
+      
+      // Solo actualizar si el estado cambió
+      if (newStatus !== paidInvoice.status) {
+        await invoicesApi.update(paidInvoice.id, {
+          date: paidInvoice.date,
+          status: newStatus,
+          items: paidInvoice.items || [],
+          notes: paidInvoice.notes
+        });
+      }
+      
+      // Recargar facturas para actualizar la lista
+      await fetchInvoices();
+      
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+      
+      // Resetear el formulario
+      setPaidAmount('');
+      setPaidDate(new Date().toISOString().slice(0, 10));
+      setPaidType('PAID');
+      
     } catch (err) {
-      alert('Error al registrar el pago');
+      setError('Error al registrar el pago');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -516,16 +562,39 @@ const Invoices: React.FC = () => {
                     <td className="border px-4 py-3 font-medium">
                       <div>
                         <div className="font-medium">€{invoice.total.toFixed(2)}</div>
-                        {invoice.status === 'PENDING' && (
-                          <div className="text-xs text-gray-600">
-                            Pendiente: €{invoice.total.toFixed(2)}
-                          </div>
-                        )}
-                        {invoice.status === 'PAID' && (
-                          <div className="text-xs text-green-600">
-                            Pagado: €{invoice.total.toFixed(2)}
-                          </div>
-                        )}
+                        {(() => {
+                          const invoicePaymentsList = invoicePayments[invoice.id] || [];
+                          const totalPaid = calculateTotalPaid(invoicePaymentsList);
+                          const pendingAmount = calculatePendingAmount(invoice, invoicePaymentsList);
+                          
+                          if (invoice.status === 'PENDING' && totalPaid > 0) {
+                            return (
+                              <div className="text-xs">
+                                <div className="text-green-600">Pagado: €{totalPaid.toFixed(2)}</div>
+                                <div className="text-red-600">Pendiente: €{pendingAmount.toFixed(2)}</div>
+                              </div>
+                            );
+                          } else if (invoice.status === 'PENDING') {
+                            return (
+                              <div className="text-xs text-gray-600">
+                                Pendiente: €{invoice.total.toFixed(2)}
+                              </div>
+                            );
+                          } else if (invoice.status === 'PAID') {
+                            return (
+                              <div className="text-xs text-green-600">
+                                Pagado: €{invoice.total.toFixed(2)}
+                              </div>
+                            );
+                          } else if (invoice.status === 'PRO_FORMA') {
+                            return (
+                              <div className="text-xs text-blue-600">
+                                Pro-forma
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     </td>
                     <td className="border px-4 py-3" onClick={(e) => e.stopPropagation()}>
@@ -599,12 +668,29 @@ const Invoices: React.FC = () => {
                     <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getStatusColor(invoice.status)}`}>
                       {getStatusText(invoice.status)}
                     </span>
-                    {invoice.status === 'PENDING' && (
-                      <p className="text-xs text-gray-600 mt-1">Pendiente: €{invoice.total.toFixed(2)}</p>
-                    )}
-                    {invoice.status === 'PAID' && (
-                      <p className="text-xs text-green-600 mt-1">Pagado: €{invoice.total.toFixed(2)}</p>
-                    )}
+                    {(() => {
+                      const invoicePaymentsList = invoicePayments[invoice.id] || [];
+                      const totalPaid = calculateTotalPaid(invoicePaymentsList);
+                      const pendingAmount = calculatePendingAmount(invoice, invoicePaymentsList);
+                      
+                      if (invoice.status === 'PENDING' && totalPaid > 0) {
+                        return (
+                          <div className="text-xs mt-1">
+                            <p className="text-green-600">Pagado: €{totalPaid.toFixed(2)}</p>
+                            <p className="text-red-600">Pendiente: €{pendingAmount.toFixed(2)}</p>
+                          </div>
+                        );
+                      } else if (invoice.status === 'PENDING') {
+                        return (
+                          <p className="text-xs text-gray-600 mt-1">Pendiente: €{invoice.total.toFixed(2)}</p>
+                        );
+                      } else if (invoice.status === 'PAID') {
+                        return (
+                          <p className="text-xs text-green-600 mt-1">Pagado: €{invoice.total.toFixed(2)}</p>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                 </div>
                 
