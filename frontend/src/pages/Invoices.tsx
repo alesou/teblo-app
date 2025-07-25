@@ -625,7 +625,7 @@ const Invoices: React.FC = () => {
                         {invoice.status === 'PRO_FORMA' && (
                           <button 
                             onClick={() => handleConvertToDefinitive(invoice)} 
-                            className="text-blue-600 hover:text-blue-700"
+                            className="text-purple-600 hover:text-purple-700"
                             title="Convertir a factura definitiva"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
@@ -736,7 +736,7 @@ const Invoices: React.FC = () => {
                   {invoice.status === 'PRO_FORMA' && (
                     <button 
                       onClick={() => handleConvertToDefinitive(invoice)}
-                      className="flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-700"
+                      className="flex items-center px-3 py-1 text-sm text-purple-600 hover:text-purple-700"
                       title="Convertir a factura definitiva"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
