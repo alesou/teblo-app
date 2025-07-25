@@ -86,4 +86,14 @@ export interface UpdateSettingsData {
   companyNif?: string;
   companyAddress?: string;
   invoicePrefix: string;
+}
+
+export interface Payment {
+  id: string;
+  invoiceId: string;
+  amount: number;
+  date: string;
+  type: 'PAID' | 'PARTIALLY_PAID';
+  note?: string;
+  createdAt: string;
 } 

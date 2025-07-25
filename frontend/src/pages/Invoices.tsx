@@ -4,8 +4,8 @@ import { settingsApi, invoicesApi, clientsApi } from '../services/api';
 import NativePDFGenerator, { InvoicePDF } from '../components/NativePDFGenerator';
 import NativeMultiPDFGenerator from '../components/NativeMultiPDFGenerator';
 import { PDFViewer } from '@react-pdf/renderer';
-import { Search, Filter, Download, Eye, Trash2, CheckCircle, XCircle, X } from 'lucide-react';
-import type { Settings, Invoice } from '../types';
+import { Search, Filter, Download, Eye, Trash2, CheckCircle, XCircle, X, History, Plus } from 'lucide-react';
+import type { Settings, Invoice, Payment } from '../types';
 
 interface InvoiceWithExtras extends Invoice {
   amountPaid?: number;
@@ -42,6 +42,18 @@ const Invoices: React.FC = () => {
   const [invoicesToExport, setInvoicesToExport] = useState<InvoiceWithExtras[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  // Payment history states
+  const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+  const [paymentHistoryInvoice, setPaymentHistoryInvoice] = useState<InvoiceWithExtras | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+  const [showAddPayment, setShowAddPayment] = useState(false);
+  const [newPayment, setNewPayment] = useState({
+    amount: '',
+    date: new Date().toISOString().slice(0, 10),
+    type: 'PARTIALLY_PAID' as 'PAID' | 'PARTIALLY_PAID',
+    note: ''
+  });
 
   const fetchInvoices = async () => {
     try {
@@ -227,6 +239,65 @@ const Invoices: React.FC = () => {
     } catch (err) {
       setError("Error al convertir la factura");
     }
+  };
+
+  const handleShowPaymentHistory = async (invoice: InvoiceWithExtras) => {
+    setPaymentHistoryInvoice(invoice);
+    setLoadingPayments(true);
+    try {
+      const paymentsData = await invoicesApi.getPayments(invoice.id);
+      setPayments(paymentsData);
+      setShowPaymentHistory(true);
+    } catch (err) {
+      setError("Error al cargar el historial de pagos");
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
+  const handleAddPayment = async () => {
+    if (!paymentHistoryInvoice || !newPayment.amount) return;
+    
+    try {
+      setSaving(true);
+      await invoicesApi.addPayment(paymentHistoryInvoice.id, {
+        amount: parseFloat(newPayment.amount),
+        date: newPayment.date,
+        type: newPayment.type,
+        note: newPayment.note
+      });
+      
+      // Reload payments
+      const paymentsData = await invoicesApi.getPayments(paymentHistoryInvoice.id);
+      setPayments(paymentsData);
+      
+      // Reset form
+      setNewPayment({
+        amount: '',
+        date: new Date().toISOString().slice(0, 10),
+        type: 'PARTIALLY_PAID',
+        note: ''
+      });
+      setShowAddPayment(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+      
+      // Reload invoices to update totals
+      fetchInvoices();
+    } catch (err) {
+      setError("Error al añadir el pago");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const calculateTotalPaid = (payments: Payment[]) => {
+    return payments.reduce((sum, payment) => sum + payment.amount, 0);
+  };
+
+  const calculatePendingAmount = (invoice: InvoiceWithExtras, payments: Payment[]) => {
+    const totalPaid = calculateTotalPaid(payments);
+    return Math.max(0, invoice.total - totalPaid);
   };
 
   if (loading) {
@@ -423,7 +494,21 @@ const Invoices: React.FC = () => {
                         {getStatusText(invoice.status)}
                       </span>
                     </td>
-                    <td className="border px-4 py-3 font-medium">€{invoice.total.toFixed(2)}</td>
+                    <td className="border px-4 py-3 font-medium">
+                      <div>
+                        <div className="font-medium">€{invoice.total.toFixed(2)}</div>
+                        {invoice.status === 'PENDING' && (
+                          <div className="text-xs text-gray-600">
+                            Pendiente: €{invoice.total.toFixed(2)}
+                          </div>
+                        )}
+                        {invoice.status === 'PAID' && (
+                          <div className="text-xs text-green-600">
+                            Pagado: €{invoice.total.toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td className="border px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-2">
                         <button 
@@ -458,6 +543,13 @@ const Invoices: React.FC = () => {
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
                           </button>
                         )}
+                        <button 
+                          onClick={() => handleShowPaymentHistory(invoice)} 
+                          className="text-purple-600 hover:text-purple-700"
+                          title="Ver historial de pagos"
+                        >
+                          <History className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -495,6 +587,12 @@ const Invoices: React.FC = () => {
                     <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getStatusColor(invoice.status)}`}>
                       {getStatusText(invoice.status)}
                     </span>
+                    {invoice.status === 'PENDING' && (
+                      <p className="text-xs text-gray-600 mt-1">Pendiente: €{invoice.total.toFixed(2)}</p>
+                    )}
+                    {invoice.status === 'PAID' && (
+                      <p className="text-xs text-green-600 mt-1">Pagado: €{invoice.total.toFixed(2)}</p>
+                    )}
                   </div>
                 </div>
                 
@@ -547,6 +645,14 @@ const Invoices: React.FC = () => {
                       Convertir
                     </button>
                   )}
+                  <button 
+                    onClick={() => handleShowPaymentHistory(invoice)} 
+                    className="flex items-center px-3 py-1 text-sm text-purple-600 hover:text-purple-700"
+                    title="Ver historial de pagos"
+                  >
+                    <History className="mr-1 h-4 w-4" />
+                    Pagos
+                  </button>
                 </div>
               </div>
             ))}
@@ -741,6 +847,165 @@ const Invoices: React.FC = () => {
           settings={settings}
           onClose={() => setExportMultiple(false)}
         />
+      )}
+
+             {/* Modal para historial de pagos */}
+       {showPaymentHistory && paymentHistoryInvoice && (
+         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+           <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+             <div className="flex justify-between items-center mb-4">
+               <h2 className="text-xl font-bold">Historial de Pagos</h2>
+               <button
+                 onClick={() => setShowPaymentHistory(false)}
+                 className="text-gray-400 hover:text-gray-600"
+               >
+                 <X className="h-6 w-6" />
+               </button>
+             </div>
+             
+             <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+               <h3 className="font-semibold text-gray-900 mb-2">Factura {paymentHistoryInvoice.number}</h3>
+               <div className="grid grid-cols-2 gap-4 text-sm">
+                 <div>
+                   <span className="text-gray-600">Total Factura:</span>
+                   <span className="ml-2 font-medium">€{paymentHistoryInvoice.total.toFixed(2)}</span>
+                 </div>
+                 <div>
+                   <span className="text-gray-600">Total Pagado:</span>
+                   <span className="ml-2 font-medium text-green-600">€{calculateTotalPaid(payments).toFixed(2)}</span>
+                 </div>
+                 <div>
+                   <span className="text-gray-600">Pendiente:</span>
+                   <span className="ml-2 font-medium text-red-600">€{calculatePendingAmount(paymentHistoryInvoice, payments).toFixed(2)}</span>
+                 </div>
+                 <div>
+                   <span className="text-gray-600">Estado:</span>
+                   <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(paymentHistoryInvoice.status)}`}>
+                     {getStatusText(paymentHistoryInvoice.status)}
+                   </span>
+                 </div>
+               </div>
+             </div>
+
+             <div className="flex justify-between items-center mb-4">
+               <h3 className="text-lg font-semibold text-gray-900">Pagos Registrados</h3>
+               <button
+                 onClick={() => setShowAddPayment(true)}
+                 className="flex items-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+               >
+                 <Plus className="mr-2 h-4 w-4" />
+                 Añadir Pago
+               </button>
+             </div>
+             
+             {loadingPayments ? (
+               <div className="text-center py-8">Cargando pagos...</div>
+             ) : payments.length === 0 ? (
+               <div className="text-center py-8 text-gray-600">
+                 <p>No hay pagos registrados para esta factura.</p>
+                 <p className="text-sm mt-2">Haz clic en "Añadir Pago" para registrar el primer pago.</p>
+               </div>
+             ) : (
+               <div className="space-y-3 max-h-64 overflow-y-auto">
+                 {payments.map((payment) => (
+                   <div key={payment.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                     <div className="flex justify-between items-start">
+                       <div className="flex-1">
+                         <div className="flex items-center gap-2 mb-2">
+                           <span className="font-semibold text-gray-900">€{payment.amount.toFixed(2)}</span>
+                           <span className={`px-2 py-1 rounded text-xs font-medium ${
+                             payment.type === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                           }`}>
+                             {payment.type === 'PAID' ? 'Total' : 'Parcial'}
+                           </span>
+                         </div>
+                         <p className="text-sm text-gray-600 mb-1">
+                           {new Date(payment.date).toLocaleDateString('es-ES', {
+                             year: 'numeric',
+                             month: 'long',
+                             day: 'numeric'
+                           })}
+                         </p>
+                         {payment.note && (
+                           <p className="text-sm text-gray-600 italic">"{payment.note}"</p>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             )}
+           </div>
+         </div>
+       )}
+
+      {/* Modal para añadir pago */}
+      {showAddPayment && paymentHistoryInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Añadir Pago a {paymentHistoryInvoice.number}</h2>
+            <form onSubmit={handleAddPayment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Importe</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={newPayment.amount}
+                  onChange={e => setNewPayment({...newPayment, amount: e.target.value})}
+                  className="w-full border rounded px-3 py-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Fecha</label>
+                <input
+                  type="date"
+                  value={newPayment.date}
+                  onChange={e => setNewPayment({...newPayment, date: e.target.value})}
+                  className="w-full border rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Tipo de pago</label>
+                <div className="flex gap-4 mt-1">
+                  <label className="flex items-center gap-1">
+                    <input type="radio" checked={newPayment.type === 'PAID'} onChange={() => setNewPayment({...newPayment, type: 'PAID'})} />
+                    Total
+                  </label>
+                  <label className="flex items-center gap-1">
+                    <input type="radio" checked={newPayment.type === 'PARTIALLY_PAID'} onChange={() => setNewPayment({...newPayment, type: 'PARTIALLY_PAID'})} />
+                    Parcial
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Notas</label>
+                <textarea
+                  value={newPayment.note}
+                  onChange={e => setNewPayment({...newPayment, note: e.target.value})}
+                  className="w-full border rounded px-3 py-2"
+                  rows={2}
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddPayment(false)}
+                  className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                >
+                  {saving ? "Guardando..." : "Guardar Pago"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

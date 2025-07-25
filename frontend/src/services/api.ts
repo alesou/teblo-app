@@ -4,6 +4,7 @@ import {
   Client,
   Invoice,
   Settings,
+  Payment,
   CreateInvoiceData,
   UpdateInvoiceData,
   CreateClientData,
@@ -90,6 +91,10 @@ export const invoicesApi = {
   updateStatus: (id: string, status: 'PENDING' | 'PAID' | 'CANCELLED') => 
     api.patch<Invoice>(`/api/invoices/${id}/status`, { status }).then(res => res.data),
   delete: (id: string) => api.delete(`/api/invoices/${id}`).then(res => res.data),
+  // Payment methods
+  getPayments: (id: string) => api.get<Payment[]>(`/api/invoices/${id}/payments`).then(res => res.data),
+  addPayment: (id: string, data: { amount: number; date: string; type: 'PAID' | 'PARTIALLY_PAID'; note?: string }) => 
+    api.post<Payment>(`/api/invoices/${id}/payments`, data).then(res => res.data),
 };
 
 // Settings API
