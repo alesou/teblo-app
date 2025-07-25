@@ -17,7 +17,7 @@ interface ClientOption {
 }
 
 const Invoices: React.FC = () => {
-  // 🔄 ÚLTIMA ACTUALIZACIÓN: 25/07/2025 - Botones diferenciados por color - VERSIÓN 3 - FORZANDO DESPLIEGUE
+  // 🔄 ÚLTIMA ACTUALIZACIÓN: 25/07/2025 - Botones diferenciados por color - VERSIÓN 4 - DESPLIEGUE FORZADO
   const [invoices, setInvoices] = useState<InvoiceWithExtras[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
