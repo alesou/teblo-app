@@ -11,7 +11,6 @@ import { invoicesApi, clientsApi } from '../services/api';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
-import { Payment } from '../types';
 
 const Dashboard = () => {
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery(
@@ -53,7 +52,6 @@ const Dashboard = () => {
   }, [invoices]);
 
   const pendingInvoices = invoices.filter(invoice => invoice.status === 'PENDING');
-  const paidInvoices = invoices.filter(invoice => invoice.status === 'PAID');
   
   // Calcular ingresos totales incluyendo pagos parciales
   const totalRevenue = totalPayments;
