@@ -198,6 +198,7 @@ const Invoices: React.FC = () => {
     switch (status) {
       case 'PAID': return 'bg-green-100 text-green-800';
       case 'CANCELLED': return 'bg-red-100 text-red-800';
+      case 'PRO_FORMA': return 'bg-blue-100 text-blue-800';
       default: return 'bg-yellow-100 text-yellow-800';
     }
   };
@@ -206,7 +207,25 @@ const Invoices: React.FC = () => {
     switch (status) {
       case 'PAID': return 'Pagada';
       case 'CANCELLED': return 'Cancelada';
+      case 'PRO_FORMA': return 'Pro-forma';
       default: return 'Pendiente';
+    }
+  };
+
+  const handleConvertToDefinitive = async (invoice: InvoiceWithExtras) => {
+    if (!confirm('¿Seguro que quieres convertir esta factura pro-forma en definitiva?')) return;
+    try {
+      await invoicesApi.update(invoice.id, {
+        date: invoice.date,
+        status: 'PENDING',
+        items: invoice.items || [],
+        notes: invoice.notes
+      });
+      fetchInvoices();
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError("Error al convertir la factura");
     }
   };
 
@@ -236,10 +255,16 @@ const Invoices: React.FC = () => {
           </button>
           {selectedIds.length > 0 && (
             <button
-              onClick={() => {
+              onClick={async () => {
                 const selected = invoices.filter(inv => selectedIds.includes(inv.id));
                 setInvoicesToExport(selected);
-                setExportMultiple(true);
+                try {
+                  const settingsData = await settingsApi.get();
+                  setSettings(settingsData);
+                  setExportMultiple(true);
+                } catch (err) {
+                  setError("Error al cargar la configuración para la descarga");
+                }
               }}
               className="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
@@ -294,6 +319,7 @@ const Invoices: React.FC = () => {
                 <option value="">Todos</option>
                 <option value="PAID">Pagada</option>
                 <option value="PENDING">Pendiente</option>
+                <option value="PRO_FORMA">Pro-forma</option>
                 <option value="CANCELLED">Cancelada</option>
               </select>
             </div>
@@ -423,6 +449,15 @@ const Invoices: React.FC = () => {
                             <XCircle className="h-4 w-4" />
                           </button>
                         )}
+                        {invoice.status === 'PRO_FORMA' && (
+                          <button 
+                            onClick={() => handleConvertToDefinitive(invoice)} 
+                            className="text-blue-600 hover:text-blue-700"
+                            title="Convertir a factura definitiva"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -502,6 +537,16 @@ const Invoices: React.FC = () => {
                       Anular
                     </button>
                   )}
+                  {invoice.status === 'PRO_FORMA' && (
+                    <button 
+                      onClick={() => handleConvertToDefinitive(invoice)}
+                      className="flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-700"
+                      title="Convertir a factura definitiva"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+                      Convertir
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -566,11 +611,12 @@ const Invoices: React.FC = () => {
                 <label className="block text-sm font-medium mb-1">Estado</label>
                 <select
                   value={editingInvoice.status}
-                  onChange={(e) => setEditingInvoice({...editingInvoice, status: e.target.value as 'PENDING' | 'PAID' | 'CANCELLED'})}
+                  onChange={(e) => setEditingInvoice({...editingInvoice, status: e.target.value as 'PENDING' | 'PAID' | 'CANCELLED' | 'PRO_FORMA'})}
                   className="w-full border rounded px-3 py-2"
                 >
                   <option value="PENDING">Pendiente</option>
                   <option value="PAID">Pagada</option>
+                  <option value="PRO_FORMA">Pro-forma</option>
                   <option value="CANCELLED">Cancelada</option>
                 </select>
               </div>
@@ -689,7 +735,7 @@ const Invoices: React.FC = () => {
       )}
 
       {/* Modal para exportar múltiples facturas */}
-      {exportMultiple && settings && (
+      {exportMultiple && settings && invoicesToExport.length > 0 && (
         <NativeMultiPDFGenerator
           invoices={invoicesToExport}
           settings={settings}

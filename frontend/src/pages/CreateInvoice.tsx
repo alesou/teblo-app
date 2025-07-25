@@ -182,6 +182,7 @@ const InvoicePDF = ({ invoice, settings }: { invoice: Invoice; settings: Setting
     switch (status) {
       case 'PAID': return 'Pagada';
       case 'CANCELLED': return 'Cancelada';
+      case 'PRO_FORMA': return 'Pro-forma';
       default: return 'Pendiente';
     }
   };
@@ -190,6 +191,7 @@ const InvoicePDF = ({ invoice, settings }: { invoice: Invoice; settings: Setting
     switch (status) {
       case 'PAID': return { backgroundColor: '#dcfce7', color: '#166534' };
       case 'CANCELLED': return { backgroundColor: '#fee2e2', color: '#991b1b' };
+      case 'PRO_FORMA': return { backgroundColor: '#dbeafe', color: '#1e40af' };
       default: return { backgroundColor: '#fef3c7', color: '#92400e' };
     }
   };
@@ -317,6 +319,7 @@ const CreateInvoice: React.FC = () => {
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [notas, setNotas] = useState("");
   const [terminos, setTerminos] = useState("");
+  const [tipoFactura, setTipoFactura] = useState<'PENDING' | 'PRO_FORMA'>('PENDING');
   const [saving, setSaving] = useState(false);
   const [createdInvoice, setCreatedInvoice] = useState<Invoice | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -357,7 +360,8 @@ const CreateInvoice: React.FC = () => {
           vatRate: c.iva
         })),
         notes: notas,
-        terms: terminos
+        terms: terminos,
+        status: tipoFactura
       });
 
       const settingsData = await settingsApi.get();
@@ -472,6 +476,17 @@ const CreateInvoice: React.FC = () => {
                   onChange={e => setFecha(e.target.value)}
                   required
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Factura</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={tipoFactura}
+                  onChange={e => setTipoFactura(e.target.value as 'PENDING' | 'PRO_FORMA')}
+                >
+                  <option value="PENDING">Factura Definitiva</option>
+                  <option value="PRO_FORMA">Pro-forma</option>
+                </select>
               </div>
             </div>
           </div>

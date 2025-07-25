@@ -22,7 +22,7 @@ export interface Invoice {
   number: string;
   date: string;
   dueDate?: string;
-  status: 'PENDING' | 'PAID' | 'CANCELLED';
+  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'PRO_FORMA';
   total: number;
   notes?: string;
   terms?: string;
@@ -53,12 +53,13 @@ export interface CreateInvoiceData {
   items: InvoiceItem[];
   notes?: string;
   terms?: string;
+  status?: 'PENDING' | 'PAID' | 'CANCELLED' | 'PRO_FORMA';
 }
 
 export interface UpdateInvoiceData {
   date: string;
   dueDate?: string;
-  status: 'PENDING' | 'PAID' | 'CANCELLED';
+  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'PRO_FORMA';
   items: InvoiceItem[];
   notes?: string;
   terms?: string;

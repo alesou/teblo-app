@@ -188,6 +188,7 @@ const InvoicePage = ({ invoice, settings, isLast }: { invoice: Invoice; settings
     switch (status) {
       case 'PAID': return 'Pagada';
       case 'CANCELLED': return 'Cancelada';
+      case 'PRO_FORMA': return 'Pro-forma';
       default: return 'Pendiente';
     }
   };
@@ -196,6 +197,7 @@ const InvoicePage = ({ invoice, settings, isLast }: { invoice: Invoice; settings
     switch (status) {
       case 'PAID': return { backgroundColor: '#dcfce7', color: '#166534' };
       case 'CANCELLED': return { backgroundColor: '#fee2e2', color: '#991b1b' };
+      case 'PRO_FORMA': return { backgroundColor: '#dbeafe', color: '#1e40af' };
       default: return { backgroundColor: '#fef3c7', color: '#92400e' };
     }
   };
