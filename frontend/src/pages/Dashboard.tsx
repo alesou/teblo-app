@@ -10,6 +10,8 @@ import {
 import { invoicesApi, clientsApi } from '../services/api';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useState, useEffect } from 'react';
+import { Payment } from '../types';
 
 const Dashboard = () => {
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery(
@@ -22,16 +24,44 @@ const Dashboard = () => {
     clientsApi.getAll
   );
 
+  const [totalPayments, setTotalPayments] = useState(0);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+
+  // Cargar pagos de todas las facturas
+  useEffect(() => {
+    const loadAllPayments = async () => {
+      if (invoices.length === 0) return;
+      
+      setLoadingPayments(true);
+      let total = 0;
+      
+      for (const invoice of invoices) {
+        try {
+          const payments = await invoicesApi.getPayments(invoice.id);
+          const invoiceTotal = payments.reduce((sum, payment) => sum + payment.amount, 0);
+          total += invoiceTotal;
+        } catch (err) {
+          console.error(`Error loading payments for invoice ${invoice.id}:`, err);
+        }
+      }
+      
+      setTotalPayments(total);
+      setLoadingPayments(false);
+    };
+
+    loadAllPayments();
+  }, [invoices]);
+
   const pendingInvoices = invoices.filter(invoice => invoice.status === 'PENDING');
   const paidInvoices = invoices.filter(invoice => invoice.status === 'PAID');
-  const totalRevenue = paidInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
+  
+  // Calcular ingresos totales incluyendo pagos parciales
+  const totalRevenue = totalPayments;
   const pendingRevenue = pendingInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
 
   const recentInvoices = invoices.slice(0, 5);
 
-
-
-  if (invoicesLoading || clientsLoading) {
+  if (invoicesLoading || clientsLoading || loadingPayments) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-gray-500">Cargando...</div>
@@ -96,6 +126,9 @@ const Dashboard = () => {
                   style: 'currency',
                   currency: 'EUR'
                 }).format(totalRevenue)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Incluye pagos parciales
               </p>
             </div>
           </div>
