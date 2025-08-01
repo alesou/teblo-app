@@ -24,6 +24,7 @@ const Dashboard = () => {
   );
 
   const [totalPayments, setTotalPayments] = useState(0);
+  const [totalPendingRevenue, setTotalPendingRevenue] = useState(0);
   const [loadingPayments, setLoadingPayments] = useState(false);
 
   // Cargar pagos de todas las facturas
@@ -32,30 +33,36 @@ const Dashboard = () => {
       if (invoices.length === 0) return;
       
       setLoadingPayments(true);
-      let total = 0;
+      let totalPaid = 0;
+      let totalPending = 0;
       
       for (const invoice of invoices) {
         try {
           const payments = await invoicesApi.getPayments(invoice.id);
-          const invoiceTotal = payments.reduce((sum, payment) => sum + payment.amount, 0);
-          total += invoiceTotal;
+          const paidAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
+          totalPaid += paidAmount;
+          
+          // Solo calcular pendiente para facturas PENDING
+          if (invoice.status === 'PENDING') {
+            const pendingAmount = invoice.total - paidAmount;
+            totalPending += Math.max(0, pendingAmount); // No permitir valores negativos
+          }
         } catch (err) {
           console.error(`Error loading payments for invoice ${invoice.id}:`, err);
         }
       }
       
-      setTotalPayments(total);
+      setTotalPayments(totalPaid);
+      setTotalPendingRevenue(totalPending);
       setLoadingPayments(false);
     };
 
     loadAllPayments();
   }, [invoices]);
-
-  const pendingInvoices = invoices.filter(invoice => invoice.status === 'PENDING');
   
   // Calcular ingresos totales incluyendo pagos parciales
   const totalRevenue = totalPayments;
-  const pendingRevenue = pendingInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
+  const pendingRevenue = totalPendingRevenue;
 
   const recentInvoices = invoices.slice(0, 5);
 
