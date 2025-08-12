@@ -11,8 +11,10 @@ import { invoicesApi, clientsApi } from '../services/api';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery(
     'invoices',
     invoicesApi.getAll
@@ -39,7 +41,7 @@ const Dashboard = () => {
       for (const invoice of invoices) {
         try {
           const payments = await invoicesApi.getPayments(invoice.id);
-          const paidAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
+          const paidAmount = payments.reduce((sum: number, payment: any) => sum + payment.amount, 0);
           totalPaid += paidAmount;
           
           // Solo calcular pendiente para facturas PENDING
@@ -69,7 +71,7 @@ const Dashboard = () => {
   if (invoicesLoading || clientsLoading || loadingPayments) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Cargando...</div>
+        <div className="text-gray-500">{t('common.loading')}</div>
       </div>
     );
   }
@@ -79,8 +81,8 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Resumen de tu actividad de facturación</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+          <p className="text-gray-600">{t('dashboard.subtitle')}</p>
         </div>
         <div className="flex space-x-3">
           <Link
@@ -88,7 +90,7 @@ const Dashboard = () => {
             className="btn btn-primary flex items-center"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Nueva Factura
+            {t('dashboard.newInvoice')}
           </Link>
         </div>
       </div>
@@ -101,7 +103,7 @@ const Dashboard = () => {
               <Users className="h-8 w-8 text-primary-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Clientes</p>
+              <p className="text-sm font-medium text-gray-500">{t('dashboard.stats.totalClients')}</p>
               <p className="text-2xl font-bold text-gray-900">{clients.length}</p>
             </div>
           </div>
@@ -113,7 +115,7 @@ const Dashboard = () => {
               <FileText className="h-8 w-8 text-primary-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Facturas</p>
+              <p className="text-sm font-medium text-gray-500">{t('dashboard.stats.totalInvoices')}</p>
               <p className="text-2xl font-bold text-gray-900">{invoices.length}</p>
             </div>
           </div>
@@ -125,7 +127,7 @@ const Dashboard = () => {
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Ingresos Totales</p>
+              <p className="text-sm font-medium text-gray-500">{t('dashboard.stats.totalRevenue')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {new Intl.NumberFormat('es-ES', {
                   style: 'currency',
@@ -133,7 +135,7 @@ const Dashboard = () => {
                 }).format(totalRevenue)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Incluye pagos parciales
+                {t('dashboard.includesPartialPayments')}
               </p>
             </div>
           </div>
@@ -145,7 +147,7 @@ const Dashboard = () => {
               <TrendingUp className="h-8 w-8 text-orange-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Pendiente de Cobro</p>
+              <p className="text-sm font-medium text-gray-500">{t('dashboard.stats.pendingRevenue')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {new Intl.NumberFormat('es-ES', {
                   style: 'currency',
@@ -160,28 +162,28 @@ const Dashboard = () => {
       {/* Recent Invoices */}
       <div className="card">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Facturas Recientes</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('dashboard.recentInvoices')}</h2>
           <Link
             to="/invoices"
             className="text-primary-600 hover:text-primary-700 font-medium"
           >
-            Ver todas
+            {t('dashboard.viewAll')}
           </Link>
         </div>
 
         {recentInvoices.length === 0 ? (
           <div className="text-center py-8">
             <FileText className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No hay facturas</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('dashboard.noInvoices')}</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Comienza creando tu primera factura.
+              {t('dashboard.addFirstInvoice')}
             </p>
             <div className="mt-6">
               <Link
                 to="/invoices/new"
                 className="btn btn-primary"
               >
-                Crear Factura
+                {t('dashboard.createInvoice')}
               </Link>
             </div>
           </div>
@@ -191,24 +193,24 @@ const Dashboard = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Número
+                    {t('dashboard.invoiceNumber')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cliente
+                    {t('dashboard.client')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha
+                    {t('dashboard.date')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
+                    {t('dashboard.total')}
                   </th>
-                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Estado
-                    </th>
+                                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('dashboard.status')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {recentInvoices.map((invoice) => (
+                {recentInvoices.map((invoice: any) => (
                   <tr key={invoice.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {invoice.number}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { clientsApi, invoicesApi } from "../services/api";
+import { useTranslation } from "../hooks/useTranslation";
 
 interface Client {
   id: string;
@@ -13,6 +14,7 @@ interface Client {
 const initialForm = { name: "", nif: "", address: "", email: "", phone: "" };
 
 const Clients: React.FC = () => {
+  const { t } = useTranslation();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,7 @@ const Clients: React.FC = () => {
       setClients(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err: any) {
-      setError("Error al cargar los clientes");
+      setError(t('clients.loadError'));
       setClients([]);
     } finally {
       setLoading(false);
@@ -66,7 +68,7 @@ const Clients: React.FC = () => {
     e.preventDefault();
     setFormError(null);
     if (!form.name.trim()) {
-      setFormError("El nombre es obligatorio");
+      setFormError(t('clients.nameRequired'));
       return;
     }
     setSaving(true);
@@ -81,14 +83,14 @@ const Clients: React.FC = () => {
       setEditId(null);
       fetchClients();
     } catch (err: any) {
-      setFormError("Error al guardar el cliente");
+      setFormError(t('clients.saveError'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este cliente? Esta acción no se puede deshacer.")) {
+    if (!confirm(t('clients.deleteConfirm'))) {
       return;
     }
     setDeleteId(id);
@@ -97,7 +99,7 @@ const Clients: React.FC = () => {
       await clientsApi.delete(id);
       fetchClients();
     } catch (err: any) {
-      setDeleteError("No se puede eliminar el cliente (puede tener facturas asociadas)");
+      setDeleteError(t('clients.deleteError'));
     } finally {
       setDeleteId(null);
     }
@@ -107,27 +109,27 @@ const Clients: React.FC = () => {
     setSelectedClient(client);
     try {
       const invoices = await invoicesApi.getAll();
-      const clientInvoicesData = invoices.filter(inv => inv.clientId === client.id);
+      const clientInvoicesData = invoices.filter((inv: any) => inv.clientId === client.id);
       setClientInvoices(clientInvoicesData);
       setClientTotal(clientInvoicesData.reduce((sum: number, inv: any) => sum + inv.total, 0));
       setShowInvoicesModal(true);
-    } catch (err) {
-      alert('Error al cargar facturas del cliente');
-    }
+         } catch (err) {
+       alert(t('clients.loadInvoicesError'));
+     }
   };
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Clientes</h1>
+        <h1 className="text-2xl font-bold">{t('clients.title')}</h1>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           onClick={() => { setShowModal(true); setEditId(null); setForm(initialForm); }}
         >
-          Nuevo Cliente
+          {t('clients.newClient')}
         </button>
       </div>
-      {loading && <div className="text-center py-8">Cargando...</div>}
+      {loading && <div className="text-center py-8">{t('common.loading')}</div>}
       {error && <div className="text-red-500 text-center py-8">{error}</div>}
       {!loading && !error && clients.length === 0 && (
         <div className="text-center py-12">
@@ -135,14 +137,14 @@ const Clients: React.FC = () => {
             <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <p className="text-xl font-medium text-gray-900 mb-2">Vaya, parece que todavía no tienes clientes</p>
-            <p className="text-gray-600">Comienza agregando tu primer cliente para poder crear facturas.</p>
+            <p className="text-xl font-medium text-gray-900 mb-2">{t('clients.noClients')}</p>
+            <p className="text-gray-600">{t('clients.addFirstClient')}</p>
           </div>
           <button
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
             onClick={() => { setShowModal(true); setEditId(null); setForm(initialForm); }}
           >
-            + Agregar mi primer cliente
+            + {t('clients.addFirstClient')}
           </button>
         </div>
       )}
@@ -150,11 +152,11 @@ const Clients: React.FC = () => {
         <table className="min-w-full bg-white border border-gray-200">
           <thead>
             <tr>
-              <th className="py-2 px-4 border-b">Nombre</th>
-              <th className="py-2 px-4 border-b">NIF</th>
-              <th className="py-2 px-4 border-b">Email</th>
-              <th className="py-2 px-4 border-b">Teléfono</th>
-              <th className="py-2 px-4 border-b">Acciones</th>
+              <th className="py-2 px-4 border-b">{t('clients.name')}</th>
+              <th className="py-2 px-4 border-b">{t('clients.nif')}</th>
+              <th className="py-2 px-4 border-b">{t('clients.email')}</th>
+              <th className="py-2 px-4 border-b">{t('clients.phone')}</th>
+              <th className="py-2 px-4 border-b">{t('invoices.actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -169,14 +171,14 @@ const Clients: React.FC = () => {
                     className="text-blue-600 hover:underline mr-2"
                     onClick={() => openEdit(client)}
                   >
-                    Editar
+                    {t('common.edit')}
                   </button>
                   <button
                     className="text-red-600 hover:underline"
                     onClick={() => handleDelete(client.id)}
                     disabled={deleteId === client.id}
                   >
-                    {deleteId === client.id ? "Eliminando..." : "Eliminar"}
+                    {deleteId === client.id ? t('common.loading') : t('common.delete')}
                   </button>
                 </td>
               </tr>
@@ -195,10 +197,10 @@ const Clients: React.FC = () => {
             >
               ×
             </button>
-            <h2 className="text-xl font-bold mb-4">{editId ? "Editar Cliente" : "Nuevo Cliente"}</h2>
+            <h2 className="text-xl font-bold mb-4">{editId ? t('clients.editClient') : t('clients.newClient')}</h2>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label className="block text-sm font-medium">Nombre *</label>
+                <label className="block text-sm font-medium">{t('clients.name')} *</label>
                 <input
                   type="text"
                   name="name"
@@ -209,7 +211,7 @@ const Clients: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">NIF</label>
+                <label className="block text-sm font-medium">{t('clients.nif')}</label>
                 <input
                   type="text"
                   name="nif"
@@ -219,7 +221,7 @@ const Clients: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Email</label>
+                <label className="block text-sm font-medium">{t('clients.email')}</label>
                 <input
                   type="email"
                   name="email"
@@ -229,7 +231,7 @@ const Clients: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Teléfono</label>
+                <label className="block text-sm font-medium">{t('clients.phone')}</label>
                 <input
                   type="text"
                   name="phone"
@@ -239,7 +241,7 @@ const Clients: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Dirección</label>
+                <label className="block text-sm font-medium">{t('clients.address')}</label>
                 <input
                   type="text"
                   name="address"
@@ -249,13 +251,13 @@ const Clients: React.FC = () => {
                 />
               </div>
               {formError && <div className="text-red-500 text-sm">{formError}</div>}
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-                disabled={saving}
-              >
-                {saving ? "Guardando..." : editId ? "Guardar Cambios" : "Guardar"}
-              </button>
+                             <button
+                 type="submit"
+                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+                 disabled={saving}
+               >
+                 {saving ? t('common.loading') : editId ? t('clients.saveChanges') : t('common.save')}
+               </button>
             </form>
           </div>
         </div>
@@ -263,16 +265,16 @@ const Clients: React.FC = () => {
       {showInvoicesModal && selectedClient && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-[500px] max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Facturas de {selectedClient.name}</h2>
-            <table className="w-full text-sm border mb-4">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="px-2 py-1 text-left">Número</th>
-                  <th className="px-2 py-1 text-right">Fecha</th>
-                  <th className="px-2 py-1 text-right">Total</th>
-                  <th className="px-2 py-1 text-center">Estado</th>
-                </tr>
-              </thead>
+                         <h2 className="text-xl font-bold mb-4">{t('clients.clientInvoices')} {selectedClient.name}</h2>
+             <table className="w-full text-sm border mb-4">
+               <thead>
+                 <tr className="bg-gray-100">
+                   <th className="px-2 py-1 text-left">{t('invoices.invoiceNumber')}</th>
+                   <th className="px-2 py-1 text-right">{t('invoices.date')}</th>
+                   <th className="px-2 py-1 text-right">{t('invoices.amount')}</th>
+                   <th className="px-2 py-1 text-center">{t('invoices.status')}</th>
+                 </tr>
+               </thead>
               <tbody>
                 {clientInvoices.map(inv => (
                   <tr key={inv.id}>
@@ -284,10 +286,10 @@ const Clients: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            <div className="font-bold text-right mb-2">Total facturado: {clientTotal.toFixed(2)} €</div>
-            <div className="flex justify-end">
-              <button onClick={() => setShowInvoicesModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cerrar</button>
-            </div>
+                         <div className="font-bold text-right mb-2">{t('clients.totalBilled')}: {clientTotal.toFixed(2)} €</div>
+             <div className="flex justify-end">
+               <button onClick={() => setShowInvoicesModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">{t('common.close')}</button>
+             </div>
           </div>
         </div>
       )}

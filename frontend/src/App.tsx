@@ -15,6 +15,9 @@ import { auth } from './firebase';
 export const AuthContext = createContext<{ user: User | null }>({ user: null });
 export const useAuth = () => useContext(AuthContext);
 
+// Bypass temporal para testing de internacionalización
+const TESTING_MODE = import.meta.env.VITE_TESTING_MODE === 'true';
+
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,6 +95,22 @@ function App() {
     needsOnboarding,
     onboardingLoading
   });
+
+  // Bypass para testing de internacionalización
+  if (TESTING_MODE) {
+    console.log('🧪 Testing mode enabled - bypassing auth');
+    return (
+      <AuthContext.Provider value={{ user: { uid: 'test-user' } as User }}>
+        <Routes>
+          <Route path="/" element={<Layout><Dashboard /></Layout>} />
+          <Route path="clients" element={<Layout><Clients /></Layout>} />
+          <Route path="invoices" element={<Layout><Invoices /></Layout>} />
+          <Route path="settings" element={<Layout><Settings /></Layout>} />
+          <Route path="invoices/new" element={<Layout><CreateInvoice /></Layout>} />
+        </Routes>
+      </AuthContext.Provider>
+    );
+  }
 
   if (loading) return <div>Cargando...</div>;
   if (!user) return <Welcome />;

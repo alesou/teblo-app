@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { settingsApi } from "../services/api";
+import { useTranslation } from "../hooks/useTranslation";
+import LanguageSelector from "../components/LanguageSelector";
 
 interface Settings {
   companyName: string;
@@ -22,6 +24,7 @@ const defaultSettings: Settings = {
 };
 
 const SettingsPage: React.FC = () => {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +39,7 @@ const SettingsPage: React.FC = () => {
         setSettings(data as Settings);
         setError(null);
       } catch (err: any) {
-        setError("Error al cargar la configuración");
+        setError(t('settings.loadError'));
       } finally {
         setLoading(false);
       }
@@ -57,7 +60,7 @@ const SettingsPage: React.FC = () => {
       await settingsApi.update(settings);
       setSuccess(true);
     } catch (err: any) {
-      setError("Error al guardar la configuración");
+      setError(t('settings.saveError'));
     } finally {
       setSaving(false);
     }
@@ -65,14 +68,20 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Configuración de la Empresa</h1>
-      {loading && <div>Cargando...</div>}
+      <h1 className="text-2xl font-bold mb-4">{t('settings.title')}</h1>
+      {loading && <div>{t('common.loading')}</div>}
       {error && <div className="text-red-500 mb-2">{error}</div>}
-      {success && <div className="text-green-600 mb-2">¡Configuración guardada!</div>}
+      {success && <div className="text-green-600 mb-2">{t('settings.saveSuccess')}</div>}
       {!loading && !error && (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Language Selector */}
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-lg font-medium mb-3">{t('settings.language')}</h3>
+            <LanguageSelector />
+          </div>
+          
           <div>
-            <label className="block text-sm font-medium">Nombre de la empresa *</label>
+            <label className="block text-sm font-medium">{t('settings.companyName')} *</label>
             <input
               type="text"
               name="companyName"
@@ -83,7 +92,7 @@ const SettingsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">NIF</label>
+            <label className="block text-sm font-medium">{t('settings.companyNif')}</label>
             <input
               type="text"
               name="companyNif"
@@ -93,7 +102,7 @@ const SettingsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Dirección</label>
+            <label className="block text-sm font-medium">{t('settings.companyAddress')}</label>
             <input
               type="text"
               name="companyAddress"
@@ -103,7 +112,7 @@ const SettingsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Teléfono</label>
+            <label className="block text-sm font-medium">{t('settings.companyPhone')}</label>
             <input
               type="text"
               name="companyPhone"
@@ -114,7 +123,7 @@ const SettingsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Web</label>
+            <label className="block text-sm font-medium">{t('settings.companyWeb')}</label>
             <input
               type="text"
               name="companyWeb"
@@ -125,7 +134,7 @@ const SettingsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Prefijo de factura *</label>
+            <label className="block text-sm font-medium">{t('settings.invoicePrefix')} *</label>
             <input
               type="text"
               name="invoicePrefix"
@@ -136,7 +145,7 @@ const SettingsPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Próximo número de factura *</label>
+            <label className="block text-sm font-medium">{t('settings.nextNumber')} *</label>
             <input
               type="number"
               name="nextNumber"
@@ -152,7 +161,7 @@ const SettingsPage: React.FC = () => {
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             disabled={saving}
           >
-            {saving ? "Guardando..." : "Guardar"}
+            {saving ? t('common.loading') : t('common.save')}
           </button>
         </form>
       )}

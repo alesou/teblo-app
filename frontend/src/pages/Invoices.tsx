@@ -6,6 +6,7 @@ import NativeMultiPDFGenerator from '../components/NativeMultiPDFGenerator';
 import { PDFViewer } from '@react-pdf/renderer';
 import { Search, Filter, Download, Eye, Trash2, CheckCircle, XCircle, X, History, Plus } from 'lucide-react';
 import type { Settings, Invoice, Payment } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface InvoiceWithExtras extends Invoice {
   amountPaid?: number;
@@ -17,7 +18,8 @@ interface ClientOption {
 }
 
 const Invoices: React.FC = () => {
-  // 🔄 ÚLTIMA ACTUALIZACIÓN: 25/07/2025 - Botones diferenciados por color - VERSIÓN 4 - DESPLIEGUE FORZADO
+  const { t } = useTranslation();
+  // 🔄 ÚLTIMA ACTUALIZACIÓN: 25/07/2025 - Botones diferenciados por color - VERSIÓN 5 - DESPLIEGUE MANUAL
   const [invoices, setInvoices] = useState<InvoiceWithExtras[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +70,7 @@ const Invoices: React.FC = () => {
       // Cargar pagos para todas las facturas
       await loadPaymentsForInvoices(invoicesData);
     } catch (err: any) {
-      setError("Error al cargar las facturas");
+      setError(t('invoices.loadError'));
       setInvoices([]);
     } finally {
       setLoading(false);
@@ -158,8 +160,9 @@ const Invoices: React.FC = () => {
 
   const handleShowPreview = async (invoice: InvoiceWithExtras) => {
     try {
-      const invoiceData = await invoicesApi.getById(invoice.id);
-      setSelectedInvoice(invoiceData as InvoiceWithExtras);
+      const invoiceData = await invoicesApi.getAll();
+      const foundInvoice = invoiceData.find((inv: any) => inv.id === invoice.id);
+      setSelectedInvoice(foundInvoice as InvoiceWithExtras);
       const settingsRes = await settingsApi.get();
       setSettings(settingsRes);
       setShowPreview(true);
@@ -273,15 +276,15 @@ const Invoices: React.FC = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'PAID': return 'Pagada';
-      case 'CANCELLED': return 'Cancelada';
-      case 'PRO_FORMA': return 'Pro-forma';
-      default: return 'Pendiente';
+      case 'PAID': return t('invoices.statuses.paid');
+      case 'CANCELLED': return t('invoices.statuses.cancelled');
+      case 'PRO_FORMA': return t('invoices.statuses.proForma');
+      default: return t('invoices.statuses.pending');
     }
   };
 
   const handleConvertToDefinitive = async (invoice: InvoiceWithExtras) => {
-    if (!confirm('¿Seguro que quieres convertir esta factura pro-forma en definitiva?')) return;
+    if (!confirm(t('invoices.confirmConvertToDefinitive'))) return;
     try {
       await invoicesApi.update(invoice.id, {
         date: invoice.date,
@@ -293,7 +296,7 @@ const Invoices: React.FC = () => {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError("Error al convertir la factura");
+      setError(t('invoices.convertError'));
     }
   };
 
@@ -305,7 +308,7 @@ const Invoices: React.FC = () => {
       setPayments(paymentsData);
       setShowPaymentHistory(true);
     } catch (err) {
-      setError("Error al cargar el historial de pagos");
+      setError(t('invoices.loadPaymentHistoryError'));
     } finally {
       setLoadingPayments(false);
     }
@@ -351,7 +354,7 @@ const Invoices: React.FC = () => {
       // Reload invoices to update totals
       fetchInvoices();
     } catch (err) {
-      setError("Error al añadir el pago");
+      setError(t('invoices.addPaymentError'));
     } finally {
       setSaving(false);
     }
@@ -369,7 +372,7 @@ const Invoices: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Cargando facturas...</div>
+        <div className="text-gray-500">{t('common.loading')}</div>
       </div>
     );
   }
@@ -379,8 +382,8 @@ const Invoices: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Facturas</h1>
-          <p className="text-gray-600">Gestiona todas tus facturas</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('invoices.title')}</h1>
+          <p className="text-gray-600">{t('invoices.subtitle')}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <button
@@ -388,7 +391,7 @@ const Invoices: React.FC = () => {
             className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
           >
             <Filter className="mr-2 h-4 w-4" />
-            Filtros
+            {t('common.filter')}
           </button>
           {selectedIds.length > 0 && (
             <button
@@ -406,7 +409,7 @@ const Invoices: React.FC = () => {
               className="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               <Download className="mr-2 h-4 w-4" />
-              Descargar ({selectedIds.length})
+              {t('invoices.download')} ({selectedIds.length})
             </button>
           )}
         </div>
@@ -415,20 +418,20 @@ const Invoices: React.FC = () => {
       {/* Filtros */}
       {showFilters && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Filtros de búsqueda</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('invoices.searchFilters')}</h3>
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cliente o número</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('invoices.searchClientOrNumber')}</label>
               <input
                 type="text"
-                placeholder="Buscar..."
+                placeholder={t('common.search')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('invoices.date')}</label>
               <input
                 type="date"
                 value={searchDate}
@@ -437,7 +440,7 @@ const Invoices: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Total</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('invoices.amount')}</label>
               <input
                 type="text"
                 placeholder="€"
@@ -447,17 +450,17 @@ const Invoices: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('invoices.status')}</label>
               <select
                 value={searchStatus}
                 onChange={e => setSearchStatus(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
-                <option value="">Todos</option>
-                <option value="PAID">Pagada</option>
-                <option value="PENDING">Pendiente</option>
-                <option value="PRO_FORMA">Pro-forma</option>
-                <option value="CANCELLED">Cancelada</option>
+                <option value="">{t('common.all')}</option>
+                <option value="PAID">{t('invoices.statuses.paid')}</option>
+                <option value="PENDING">{t('invoices.statuses.pending')}</option>
+                <option value="PRO_FORMA">{t('invoices.statuses.proForma')}</option>
+                <option value="CANCELLED">{t('invoices.statuses.cancelled')}</option>
               </select>
             </div>
             <div className="md:col-span-2 lg:col-span-4 flex gap-2">
@@ -466,7 +469,7 @@ const Invoices: React.FC = () => {
                 className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               >
                 <Search className="mr-2 h-4 w-4" />
-                Buscar
+                {t('common.search')}
               </button>
               <button
                 type="button"
@@ -479,7 +482,7 @@ const Invoices: React.FC = () => {
                 }}
                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
               >
-                Limpiar
+                {t('common.clear')}
               </button>
             </div>
           </form>
@@ -489,7 +492,7 @@ const Invoices: React.FC = () => {
       {/* Mensajes de éxito/error */}
       {success && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-          Operación completada exitosamente
+          {t('common.success')}
         </div>
       )}
       {error && (
@@ -505,19 +508,19 @@ const Invoices: React.FC = () => {
             <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p className="text-xl font-medium text-gray-900 mb-2">Vaya, parece que todavía no tienes facturas</p>
-            <p className="text-gray-600">Comienza creando tu primera factura para gestionar tus ventas.</p>
+            <p className="text-xl font-medium text-gray-900 mb-2">{t('invoices.noInvoices')}</p>
+            <p className="text-gray-600">{t('invoices.createFirstInvoice')}</p>
           </div>
           <button
             className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
             onClick={() => navigate("/invoices/new")}
           >
-            + Crear mi primera factura
+            + {t('invoices.addFirstInvoice')}
           </button>
         </div>
       ) : (
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">Haz clic en cualquier factura para ver la previsualización y generar el PDF</p>
+          <p className="text-sm text-gray-600">{t('invoices.clickToPreview')}</p>
           
           {/* Desktop Table */}
           <div className="hidden lg:block overflow-x-auto">
@@ -531,12 +534,12 @@ const Invoices: React.FC = () => {
                       onChange={e => setSelectedIds(e.target.checked ? invoices.map(i => i.id) : [])} 
                     />
                   </th>
-                  <th className="border px-4 py-3 text-left">Número</th>
-                  <th className="border px-4 py-3 text-left">Cliente</th>
-                  <th className="border px-4 py-3 text-left">Fecha</th>
-                  <th className="border px-4 py-3 text-left">Estado</th>
-                  <th className="border px-4 py-3 text-left">Total</th>
-                  <th className="border px-4 py-3 text-left">Acciones</th>
+                  <th className="border px-4 py-3 text-left">{t('invoices.invoiceNumber')}</th>
+                  <th className="border px-4 py-3 text-left">{t('invoices.client')}</th>
+                  <th className="border px-4 py-3 text-left">{t('invoices.date')}</th>
+                  <th className="border px-4 py-3 text-left">{t('invoices.status')}</th>
+                  <th className="border px-4 py-3 text-left">{t('invoices.amount')}</th>
+                  <th className="border px-4 py-3 text-left">{t('invoices.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -553,7 +556,7 @@ const Invoices: React.FC = () => {
                       />
                     </td>
                     <td className="border px-4 py-3 font-medium">{invoice.number}</td>
-                    <td className="border px-4 py-3">{invoice.client?.name || "Sin cliente"}</td>
+                    <td className="border px-4 py-3">{invoice.client?.name || t('invoices.noClient')}</td>
                     <td className="border px-4 py-3">{new Date(invoice.date).toLocaleDateString()}</td>
                     <td className="border px-4 py-3">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(invoice.status)}`}>
@@ -571,26 +574,26 @@ const Invoices: React.FC = () => {
                           if (invoice.status === 'PENDING' && totalPaid > 0) {
                             return (
                               <div className="text-xs">
-                                <div className="text-green-600">Pagado: €{totalPaid.toFixed(2)}</div>
-                                <div className="text-red-600">Pendiente: €{pendingAmount.toFixed(2)}</div>
+                                <div className="text-green-600">{t('invoices.paid')}: €{totalPaid.toFixed(2)}</div>
+                                <div className="text-red-600">{t('invoices.pending')}: €{pendingAmount.toFixed(2)}</div>
                               </div>
                             );
                           } else if (invoice.status === 'PENDING') {
                             return (
                               <div className="text-xs text-gray-600">
-                                Pendiente: €{invoice.total.toFixed(2)}
+                                {t('invoices.pending')}: €{invoice.total.toFixed(2)}
                               </div>
                             );
                           } else if (invoice.status === 'PAID') {
                             return (
                               <div className="text-xs text-green-600">
-                                Pagado: €{invoice.total.toFixed(2)}
+                                {t('invoices.paid')}: €{invoice.total.toFixed(2)}
                               </div>
                             );
                           } else if (invoice.status === 'PRO_FORMA') {
                             return (
                               <div className="text-xs text-blue-600">
-                                Pro-forma
+                                {t('invoices.statuses.proForma')}
                               </div>
                             );
                           }
@@ -603,14 +606,14 @@ const Invoices: React.FC = () => {
                         <button 
                           onClick={() => handleDelete(invoice.id)} 
                           className="text-red-600 hover:text-red-700"
-                          title="Eliminar factura"
+                          title={t('invoices.deleteInvoice')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                         <button 
                           onClick={() => handlePaymentAction(invoice)} 
                           className="text-primary-600 hover:text-primary-700"
-                          title={invoice.status === 'PAID' ? 'Ver historial de pagos' : 'Marcar como pagada'}
+                          title={invoice.status === 'PAID' ? t('invoices.viewPaymentHistory') : t('invoices.markAsPaid')}
                         >
                           {invoice.status === 'PAID' ? <History className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
                         </button>
@@ -618,7 +621,7 @@ const Invoices: React.FC = () => {
                           <button 
                             onClick={() => handleCancel(invoice)} 
                             className="text-gray-600 hover:text-gray-700"
-                            title="Anular factura"
+                            title={t('invoices.cancelInvoice')}
                           >
                             <XCircle className="h-4 w-4" />
                           </button>
@@ -627,7 +630,7 @@ const Invoices: React.FC = () => {
                           <button 
                             onClick={() => handleConvertToDefinitive(invoice)} 
                             className="text-purple-600 hover:text-purple-700"
-                            title="Convertir a factura definitiva"
+                            title={t('invoices.convertToDefinitive')}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
                           </button>
@@ -879,7 +882,7 @@ const Invoices: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-lg">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Gestionar Pagos - {paidInvoice.number}</h2>
+              <h2 className="text-xl font-bold">{t('payments.managePayments')} - {paidInvoice.number}</h2>
               <button
                 onClick={() => setShowPaidModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -892,11 +895,11 @@ const Invoices: React.FC = () => {
             <div className="mb-4 p-4 bg-gray-50 rounded-lg">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Total Factura:</span>
+                  <span className="text-gray-600">{t('payments.invoiceTotal')}:</span>
                   <span className="ml-2 font-medium">€{paidInvoice.total.toFixed(2)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Estado:</span>
+                  <span className="text-gray-600">{t('payments.status')}:</span>
                   <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(paidInvoice.status)}`}>
                     {getStatusText(paidInvoice.status)}
                   </span>
@@ -906,10 +909,10 @@ const Invoices: React.FC = () => {
 
             {/* Historial de pagos existentes */}
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Pagos Registrados</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('payments.registeredPayments')}</h3>
               <div className="max-h-32 overflow-y-auto space-y-2">
                 {payments.length === 0 ? (
-                  <p className="text-gray-600 text-sm">No hay pagos registrados</p>
+                  <p className="text-gray-600 text-sm">{t('payments.noPaymentsRegistered')}</p>
                 ) : (
                   payments.map((payment) => (
                     <div key={payment.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
@@ -919,7 +922,7 @@ const Invoices: React.FC = () => {
                           <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
                             payment.type === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
                           }`}>
-                            {payment.type === 'PAID' ? 'Total' : 'Parcial'}
+                            {payment.type === 'PAID' ? t('payments.total') : t('payments.partial')}
                           </span>
                         </div>
                         <span className="text-sm text-gray-600">
@@ -937,10 +940,10 @@ const Invoices: React.FC = () => {
 
             {/* Formulario para nuevo pago */}
             <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Añadir Nuevo Pago</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('payments.addNewPayment')}</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Importe pagado</label>
+                  <label className="block text-sm font-medium mb-1">{t('payments.amountPaid')}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -951,7 +954,7 @@ const Invoices: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Fecha de pago</label>
+                  <label className="block text-sm font-medium mb-1">{t('payments.paymentDate')}</label>
                   <input
                     type="date"
                     value={paidDate}
@@ -960,15 +963,15 @@ const Invoices: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Tipo de pago</label>
+                  <label className="block text-sm font-medium mb-1">{t('payments.paymentType')}</label>
                   <div className="flex gap-4 mt-1">
                     <label className="flex items-center gap-1">
                       <input type="radio" checked={paidType === 'PAID'} onChange={() => setPaidType('PAID')} />
-                      Total
+                      {t('payments.total')}
                     </label>
                     <label className="flex items-center gap-1">
                       <input type="radio" checked={paidType === 'PARTIALLY_PAID'} onChange={() => setPaidType('PARTIALLY_PAID')} />
-                      Parcial
+                      {t('payments.partial')}
                     </label>
                   </div>
                 </div>
@@ -977,13 +980,13 @@ const Invoices: React.FC = () => {
                     onClick={() => setShowPaidModal(false)} 
                     className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                   >
-                    Cancelar
+                    {t('common.cancel')}
                   </button>
                   <button 
                     onClick={handleSavePaid} 
                     className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
                   >
-                    Guardar Pago
+                    {t('payments.savePayment')}
                   </button>
                 </div>
               </div>
@@ -1019,19 +1022,19 @@ const Invoices: React.FC = () => {
                <h3 className="font-semibold text-gray-900 mb-2">Factura {paymentHistoryInvoice.number}</h3>
                <div className="grid grid-cols-2 gap-4 text-sm">
                  <div>
-                   <span className="text-gray-600">Total Factura:</span>
+                   <span className="text-gray-600">{t('payments.invoiceTotal')}:</span>
                    <span className="ml-2 font-medium">€{paymentHistoryInvoice.total.toFixed(2)}</span>
                  </div>
                  <div>
-                   <span className="text-gray-600">Total Pagado:</span>
+                   <span className="text-gray-600">{t('payments.totalPaid')}:</span>
                    <span className="ml-2 font-medium text-green-600">€{calculateTotalPaid(payments).toFixed(2)}</span>
                  </div>
                  <div>
-                   <span className="text-gray-600">Pendiente:</span>
+                   <span className="text-gray-600">{t('payments.pending')}:</span>
                    <span className="ml-2 font-medium text-red-600">€{calculatePendingAmount(paymentHistoryInvoice, payments).toFixed(2)}</span>
                  </div>
                  <div>
-                   <span className="text-gray-600">Estado:</span>
+                   <span className="text-gray-600">{t('payments.status')}:</span>
                    <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(paymentHistoryInvoice.status)}`}>
                      {getStatusText(paymentHistoryInvoice.status)}
                    </span>
@@ -1040,22 +1043,22 @@ const Invoices: React.FC = () => {
              </div>
 
              <div className="flex justify-between items-center mb-4">
-               <h3 className="text-lg font-semibold text-gray-900">Pagos Registrados</h3>
+               <h3 className="text-lg font-semibold text-gray-900">{t('payments.registeredPayments')}</h3>
                <button
                  onClick={() => setShowAddPayment(true)}
                  className="flex items-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                >
                  <Plus className="mr-2 h-4 w-4" />
-                 Añadir Pago
+                 {t('payments.addPayment')}
                </button>
              </div>
              
              {loadingPayments ? (
-               <div className="text-center py-8">Cargando pagos...</div>
+               <div className="text-center py-8">{t('payments.loadingPayments')}</div>
              ) : payments.length === 0 ? (
                <div className="text-center py-8 text-gray-600">
-                 <p>No hay pagos registrados para esta factura.</p>
-                 <p className="text-sm mt-2">Haz clic en "Añadir Pago" para registrar el primer pago.</p>
+                 <p>{t('payments.noPaymentsForInvoice')}</p>
+                 <p className="text-sm mt-2">{t('payments.clickAddPayment')}</p>
                </div>
              ) : (
                <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -1068,7 +1071,7 @@ const Invoices: React.FC = () => {
                            <span className={`px-2 py-1 rounded text-xs font-medium ${
                              payment.type === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
                            }`}>
-                             {payment.type === 'PAID' ? 'Total' : 'Parcial'}
+                             {payment.type === 'PAID' ? t('payments.total') : t('payments.partial')}
                            </span>
                          </div>
                          <p className="text-sm text-gray-600 mb-1">
@@ -1095,10 +1098,10 @@ const Invoices: React.FC = () => {
       {showAddPayment && paymentHistoryInvoice && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Añadir Pago a {paymentHistoryInvoice.number}</h2>
+            <h2 className="text-xl font-bold mb-4">{t('payments.addPaymentTo')} {paymentHistoryInvoice.number}</h2>
             <form onSubmit={handleAddPayment} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Importe</label>
+                <label className="block text-sm font-medium mb-1">{t('payments.amount')}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1109,7 +1112,7 @@ const Invoices: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Fecha</label>
+                <label className="block text-sm font-medium mb-1">{t('payments.date')}</label>
                 <input
                   type="date"
                   value={newPayment.date}
@@ -1118,20 +1121,20 @@ const Invoices: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Tipo de pago</label>
+                <label className="block text-sm font-medium mb-1">{t('payments.paymentType')}</label>
                 <div className="flex gap-4 mt-1">
                   <label className="flex items-center gap-1">
                     <input type="radio" checked={newPayment.type === 'PAID'} onChange={() => setNewPayment({...newPayment, type: 'PAID'})} />
-                    Total
+                    {t('payments.total')}
                   </label>
                   <label className="flex items-center gap-1">
                     <input type="radio" checked={newPayment.type === 'PARTIALLY_PAID'} onChange={() => setNewPayment({...newPayment, type: 'PARTIALLY_PAID'})} />
-                    Parcial
+                    {t('payments.partial')}
                   </label>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Notas</label>
+                <label className="block text-sm font-medium mb-1">{t('payments.notes')}</label>
                 <textarea
                   value={newPayment.note}
                   onChange={e => setNewPayment({...newPayment, note: e.target.value})}
@@ -1145,14 +1148,14 @@ const Invoices: React.FC = () => {
                   onClick={() => setShowAddPayment(false)}
                   className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
                   className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
                 >
-                  {saving ? "Guardando..." : "Guardar Pago"}
+                  {saving ? t('common.saving') : t('payments.savePayment')}
                 </button>
               </div>
             </form>

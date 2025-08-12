@@ -1,106 +1,165 @@
 import axios from 'axios';
-import { getAuth } from 'firebase/auth';
-import {
-  Client,
+import type {
   Invoice,
-  Settings,
-  Payment,
-  CreateInvoiceData,
-  UpdateInvoiceData,
-  CreateClientData,
-  UpdateClientData,
-  UpdateSettingsData
+  Settings
 } from '../types';
 
-// API configuration for separate backend service
-const getApiUrl = () => {
-  // Production: use environment variable or real backend URL
-  if (import.meta.env.PROD) {
-    return import.meta.env.VITE_API_URL || 'https://api.teblo.app';
-  }
-  // Development: use local backend
-  return 'http://localhost:3001';
-};
+// Configuración base
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+// Crear instancia de axios
 const api = axios.create({
-  baseURL: getApiUrl(),
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
 });
 
-// Add auth token to requests
+// Interceptor para agregar token de autenticación
 api.interceptors.request.use(async (config) => {
-  const auth = getAuth();
+  // Bypass para modo testing
+  if (import.meta.env.VITE_TESTING_MODE === 'true') {
+    console.log('🧪 Testing mode - bypassing API calls');
+    return config;
+  }
+
+  // Obtener token de Firebase
+  const { auth } = await import('../firebase');
   const user = auth.currentUser;
   
-  console.log('Request interceptor called for:', config.url);
-  console.log('Current user:', user ? user.uid : 'No user');
-  console.log('User email:', user?.email);
-  console.log('User emailVerified:', user?.emailVerified);
-  
-  if (user && user.uid) {
-    try {
-      // Force token refresh to ensure we get a fresh token
-      const token = await user.getIdToken(true);
-      console.log('Token obtained, length:', token.length);
-      console.log('Token preview:', token.substring(0, 50) + '...');
-      
-      if (token && token.length > 100) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.log('Authorization header set successfully');
-      } else {
-        console.error('Token too short or invalid:', token);
-      }
-    } catch (error) {
-      console.error('Error getting auth token:', error);
-      // If token refresh fails, try to get the current token
-      try {
-        const currentToken = await user.getIdToken();
-        if (currentToken && currentToken.length > 100) {
-          config.headers.Authorization = `Bearer ${currentToken}`;
-          console.log('Fallback token set successfully');
-        }
-      } catch (fallbackError) {
-        console.error('Fallback token error:', fallbackError);
-      }
-    }
-  } else {
-    console.log('No authenticated user found');
+  if (user) {
+    const token = await user.getIdToken();
+    config.headers.Authorization = `Bearer ${token}`;
   }
   
   return config;
 });
 
-// Clients API
+// Datos mock para modo testing
+const mockData = {
+  clients: [
+    { id: '1', name: 'Cliente Ejemplo 1', email: 'cliente1@ejemplo.com', phone: '123456789' },
+    { id: '2', name: 'Cliente Ejemplo 2', email: 'cliente2@ejemplo.com', phone: '987654321' }
+  ],
+  invoices: [
+    { 
+      id: '1', 
+      number: 'F-001', 
+      date: '2024-01-15', 
+      total: 1500.00, 
+      status: 'PENDING',
+      client: { name: 'Cliente Ejemplo 1' }
+    },
+    { 
+      id: '2', 
+      number: 'F-002', 
+      date: '2024-01-20', 
+      total: 2300.00, 
+      status: 'PAID',
+      client: { name: 'Cliente Ejemplo 2' }
+    }
+  ],
+  settings: {
+    companyName: 'Empresa Ejemplo',
+    companyNif: 'B12345678',
+    companyAddress: 'Calle Ejemplo 123, Madrid',
+    companyEmail: 'info@empresa.com',
+    companyPhone: '912345678'
+  }
+};
+
+// APIs
 export const clientsApi = {
-  getAll: () => api.get<Client[]>('/api/clients').then(res => res.data),
-  getById: (id: string) => api.get<Client>(`/api/clients/${id}`).then(res => res.data),
-  create: (data: CreateClientData) => api.post<Client>('/api/clients', data).then(res => res.data),
-  update: (id: string, data: UpdateClientData) => api.put<Client>(`/api/clients/${id}`, data).then(res => res.data),
-  delete: (id: string) => api.delete(`/api/clients/${id}`).then(res => res.data),
+  getAll: async () => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return mockData.clients;
+    }
+    const response = await api.get('/clients');
+    return response.data;
+  },
+  create: async (data: any) => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return { ...data, id: Date.now().toString() };
+    }
+    const response = await api.post('/clients', data);
+    return response.data;
+  },
+  update: async (id: string, data: any) => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return { ...data, id };
+    }
+    const response = await api.put(`/clients/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: string) => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return { success: true };
+    }
+    const response = await api.delete(`/clients/${id}`);
+    return response.data;
+  }
 };
 
-// Invoices API
 export const invoicesApi = {
-  getAll: () => api.get<Invoice[]>('/api/invoices').then(res => res.data),
-  getById: (id: string) => api.get<Invoice>(`/api/invoices/${id}`).then(res => res.data),
-  create: (data: CreateInvoiceData) => api.post<Invoice>('/api/invoices', data).then(res => res.data),
-  update: (id: string, data: UpdateInvoiceData) => api.put<Invoice>(`/api/invoices/${id}`, data).then(res => res.data),
-  updateStatus: (id: string, status: 'PENDING' | 'PAID' | 'CANCELLED') => 
-    api.patch<Invoice>(`/api/invoices/${id}/status`, { status }).then(res => res.data),
-  delete: (id: string) => api.delete(`/api/invoices/${id}`).then(res => res.data),
-  // Payment methods
-  getPayments: (id: string) => api.get<Payment[]>(`/api/invoices/${id}/payments`).then(res => res.data),
-  addPayment: (id: string, data: { amount: number; date: string; type: 'PAID' | 'PARTIALLY_PAID'; note?: string }) => 
-    api.post<Payment>(`/api/invoices/${id}/payments`, data).then(res => res.data),
+  getAll: async () => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return mockData.invoices;
+    }
+    const response = await api.get('/invoices');
+    return response.data;
+  },
+  create: async (data: any) => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return { ...data, id: Date.now().toString(), number: `F-${Date.now()}` };
+    }
+    const response = await api.post('/invoices', data);
+    return response.data;
+  },
+  update: async (id: string, data: any) => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return { ...data, id };
+    }
+    const response = await api.put(`/invoices/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: string) => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return { success: true };
+    }
+    const response = await api.delete(`/invoices/${id}`);
+    return response.data;
+  },
+  getPayments: async (id: string) => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return [];
+    }
+    const response = await api.get(`/invoices/${id}/payments`);
+    return response.data;
+  },
+  addPayment: async (id: string, data: any) => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return { ...data, id: Date.now().toString() };
+    }
+    const response = await api.post(`/invoices/${id}/payments`, data);
+    return response.data;
+  }
 };
 
-// Settings API
 export const settingsApi = {
-  get: () => api.get<Settings>('/api/settings').then(res => res.data),
-  update: (data: UpdateSettingsData) => api.put<Settings>('/api/settings', data).then(res => res.data),
+  get: async () => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return mockData.settings;
+    }
+    const response = await api.get('/settings');
+    return response.data;
+  },
+  update: async (data: any) => {
+    if (import.meta.env.VITE_TESTING_MODE === 'true') {
+      return { ...mockData.settings, ...data };
+    }
+    const response = await api.put('/settings', data);
+    return response.data;
+  }
 };
 
 // PDF API - Frontend generation

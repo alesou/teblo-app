@@ -13,6 +13,7 @@ import { useAuth } from '../App';
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -21,36 +22,37 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Clientes', href: '/clients', icon: Users },
-    { name: 'Facturas', href: '/invoices', icon: FileText },
-    { name: 'Configuración', href: '/settings', icon: Settings },
+    { name: t('navigation.dashboard'), href: '/', icon: Home },
+    { name: t('navigation.clients'), href: '/clients', icon: Users },
+    { name: t('navigation.invoices'), href: '/invoices', icon: FileText },
+    { name: t('navigation.settings'), href: '/settings', icon: Settings },
   ];
 
   const donationOptions = [
     {
-      name: 'Café ☕',
+      name: t('donation.options.coffee.name'),
       amount: 3,
-      description: 'Un café para mantener Teblo funcionando'
+      description: t('donation.options.coffee.description')
     },
     {
-      name: 'Almuerzo 🍕',
+      name: t('donation.options.lunch.name'),
       amount: 10,
-      description: 'Un almuerzo para seguir mejorando Teblo'
+      description: t('donation.options.lunch.description')
     },
     {
-      name: 'Cena 🍽️',
+      name: t('donation.options.dinner.name'),
       amount: 25,
-      description: 'Una cena para nuevas funcionalidades'
+      description: t('donation.options.dinner.description')
     },
     {
-      name: 'Patrocinador 💎',
+      name: t('donation.options.sponsor.name'),
       amount: 50,
-      description: 'Patrocinador oficial de Teblo'
+      description: t('donation.options.sponsor.description')
     }
   ];
 
@@ -95,7 +97,7 @@ const Layout = ({ children }: LayoutProps) => {
             className="mt-3 w-full px-3 py-2 bg-gray-200 rounded text-sm hover:bg-gray-300 transition-colors"
             onClick={() => signOut(auth)}
           >
-            Cerrar sesión
+            {t('auth.signOut')}
           </button>
         </div>
       )}
@@ -126,7 +128,7 @@ const Layout = ({ children }: LayoutProps) => {
         {/* Quick Actions */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-            Acciones Rápidas
+            {t('layout.quickActions')}
           </h3>
           <div className="space-y-1">
             <Link
@@ -135,7 +137,7 @@ const Layout = ({ children }: LayoutProps) => {
               className="flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
             >
               <Plus className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="truncate">Nueva Factura</span>
+              <span className="truncate">{t('layout.newInvoice')}</span>
             </Link>
             <button
               onClick={() => {
@@ -145,7 +147,7 @@ const Layout = ({ children }: LayoutProps) => {
               className="flex items-center w-full px-3 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 hover:text-primary-700 rounded-lg transition-colors"
             >
               <Heart className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="truncate">Donar</span>
+              <span className="truncate">{t('layout.donate')}</span>
             </button>
           </div>
         </div>
@@ -183,7 +185,7 @@ const Layout = ({ children }: LayoutProps) => {
               className="flex items-center px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Nueva
+              {t('common.new')}
             </Link>
           )}
         </div>
@@ -217,7 +219,7 @@ const Layout = ({ children }: LayoutProps) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">¿Te gusta Teblo? ❤️</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t('donation.title')} ❤️</h2>
               <button
                 onClick={() => setShowDonationModal(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -227,7 +229,7 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
             
             <p className="text-gray-600 mb-6">
-              Si Teblo te está ayudando en tu negocio, considera hacer una donación para mantener el proyecto vivo y seguir mejorando la aplicación.
+              {t('donation.description')}
             </p>
 
             <div className="space-y-3">
@@ -250,7 +252,7 @@ const Layout = ({ children }: LayoutProps) => {
 
             <div className="mt-6 text-center">
               <p className="text-xs text-gray-500">
-                Las donaciones ayudan a mantener Teblo gratis, sin anuncios y en constante mejora
+                {t('donation.description')}
               </p>
             </div>
           </div>

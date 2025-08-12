@@ -4,6 +4,7 @@ import { invoicesApi, clientsApi, settingsApi } from '../services/api';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 import { Plus, Trash2, Save, Download, ArrowLeft } from 'lucide-react';
 import type { Invoice, Settings } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 // Registrar fuentes del sistema
 Font.register({
@@ -312,6 +313,7 @@ interface Cliente {
 const initialConcepto = { descripcion: "", cantidad: 1, precio: 0, iva: 21 };
 
 const CreateInvoice: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [conceptos, setConceptos] = useState<Concepto[]>([{ ...initialConcepto }]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -342,9 +344,9 @@ const CreateInvoice: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clienteId) return alert("Selecciona un cliente");
+    if (!clienteId) return alert(t('createInvoice.selectClientError'));
     if (conceptos.length === 0 || conceptos.some(c => !c.descripcion || c.cantidad <= 0)) {
-      return alert("Añade al menos un concepto válido");
+      return alert(t('createInvoice.addValidConceptError'));
     }
     
     setSaving(true);
@@ -370,7 +372,7 @@ const CreateInvoice: React.FC = () => {
       setShowPDFDownload(true);
       
     } catch (err) {
-      alert("Error al guardar la factura");
+      alert(t('createInvoice.saveError'));
     } finally {
       setSaving(false);
     }
@@ -395,9 +397,9 @@ const CreateInvoice: React.FC = () => {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Save className="h-8 w-8 text-green-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">¡Factura creada!</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('createInvoice.success')}</h3>
             <p className="text-gray-600">
-              La factura se ha guardado correctamente. Ahora puedes descargar el PDF.
+              {t('createInvoice.successMessage')}
             </p>
           </div>
           
@@ -410,7 +412,7 @@ const CreateInvoice: React.FC = () => {
               {({ loading }) => (
                 <>
                   <Download className="mr-2 h-5 w-5" />
-                  {loading ? 'Generando PDF...' : 'Descargar PDF'}
+                  {loading ? t('createInvoice.generatingPDF') : t('createInvoice.downloadPDF')}
                 </>
               )}
             </PDFDownloadLink>
@@ -420,7 +422,7 @@ const CreateInvoice: React.FC = () => {
               className="w-full bg-gray-200 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
             >
               <ArrowLeft className="mr-2 h-5 w-5" />
-              Ir a Facturas
+              {t('createInvoice.goToInvoices')}
             </button>
           </div>
         </div>
@@ -441,7 +443,7 @@ const CreateInvoice: React.FC = () => {
               >
                 <ArrowLeft className="h-5 w-5" />
               </button>
-              <h1 className="text-2xl font-bold text-gray-900">Crear Factura</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('createInvoice.title')}</h1>
             </div>
           </div>
         </div>
@@ -451,24 +453,24 @@ const CreateInvoice: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Información básica */}
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Información Básica</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('createInvoice.basicInfo')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Cliente *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('createInvoice.client')} *</label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   value={clienteId}
                   onChange={e => setClienteId(e.target.value)}
                   required
                 >
-                  <option value="">Seleccionar cliente</option>
+                  <option value="">{t('createInvoice.selectClient')}</option>
                   {clientes.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Fecha *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('createInvoice.date')} *</label>
                 <input
                   type="date"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -478,14 +480,14 @@ const CreateInvoice: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Factura</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('createInvoice.invoiceType')}</label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   value={tipoFactura}
                   onChange={e => setTipoFactura(e.target.value as 'PENDING' | 'PRO_FORMA')}
                 >
-                  <option value="PENDING">Factura Definitiva</option>
-                  <option value="PRO_FORMA">Pro-forma</option>
+                  <option value="PENDING">{t('createInvoice.definitiveInvoice')}</option>
+                  <option value="PRO_FORMA">{t('createInvoice.proForma')}</option>
                 </select>
               </div>
             </div>
