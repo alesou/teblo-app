@@ -23,14 +23,34 @@ api.interceptors.request.use(async (config) => {
     return config;
   }
 
-  // Obtener token de Firebase
-  const { auth } = await import('../firebase');
-  const user = auth.currentUser;
+  console.log('🔐 API Interceptor - Checking authentication...');
   
-  if (user) {
-    const token = await user.getIdToken();
-    config.headers.Authorization = `Bearer ${token}`;
+  try {
+    // Obtener token de Firebase
+    const { auth } = await import('../firebase');
+    console.log('🔥 Firebase auth imported successfully');
+    
+    const user = auth.currentUser;
+    console.log('👤 Current user:', user ? user.uid : 'NO USER');
+    
+    if (user) {
+      console.log('✅ User found, getting ID token...');
+      const token = await user.getIdToken();
+      console.log('🎫 Token obtained, length:', token.length);
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔑 Authorization header set successfully');
+    } else {
+      console.log('❌ No user found in Firebase auth');
+    }
+  } catch (error) {
+    console.error('💥 Error in API interceptor:', error);
   }
+  
+  console.log('📤 Request config:', {
+    url: config.url,
+    method: config.method,
+    hasAuth: !!config.headers.Authorization
+  });
   
   return config;
 });
